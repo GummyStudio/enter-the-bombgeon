@@ -230,6 +230,11 @@ class Spaz(bs.Actor):
         self.punch_callback: Callable[[Spaz], Any] | None = None
         self.pick_up_powerup_callback: Callable[[Spaz], Any] | None = None
 
+        if self.source_player:
+            self.team = self.source_player.team
+        else:
+            self.team = bs.Team()
+
     @override
     def exists(self) -> bool:
         return bool(self.node)
@@ -899,6 +904,11 @@ class Spaz(bs.Actor):
         elif isinstance(msg, bs.HitMessage):
             if not self.node:
                 return None
+            
+            if msg._source_player and self.source_player:
+                if msg._source_player.team == self.team:
+                    return
+
             if self.node.invincible:
                 SpazFactory.get().block_sound.play(
                     1.0,
@@ -917,9 +927,19 @@ class Spaz(bs.Actor):
                 self._num_times_hit += 1
                 self._last_hit_time = local_time
 
-            mag = msg.magnitude * self.impact_scale
-            velocity_mag = msg.velocity_magnitude * self.impact_scale
+            if msg.hit_type not in ['punch']:
+                impulse_scale = 0.55
+            else:
+                impulse_scale = 0.8
+
+            mag = msg.magnitude * self.impact_scale * impulse_scale
+            velocity_mag = msg.velocity_magnitude * self.impact_scale * impulse_scale
             damage_scale = 0.22
+
+            
+            damage_scale /= impulse_scale
+
+        
 
             # If they've got a shield, deliver it to that instead.
             if self.shield:
