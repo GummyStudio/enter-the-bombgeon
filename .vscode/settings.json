@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./ba_data/python",
+        "./ba_data/python/fusecore/libs",
+        "./ba_data/python/dummymodules"
+    ]
+}
