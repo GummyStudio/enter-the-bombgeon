@@ -1012,6 +1012,8 @@ class GameActivity(Activity[PlayerT, TeamT]):
         return spaz
 
     def setup_standard_powerup_drops(self, enable_tnt: bool = True) -> None:
+        # no poweru
+        return
         """Create standard powerup drops for the current map."""
         # pylint: disable=cyclic-import
         from bascenev1lib.actor.powerupbox import DEFAULT_POWERUP_INTERVAL
