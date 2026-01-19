@@ -218,6 +218,10 @@ class Map(Actor):
         self._next_ffa_start_index = random.randrange(
             len(self.ffa_spawn_points)
         )
+        # cave ambience
+        _bascenev1.newnode('sound',attrs={'sound': _bascenev1.getsound('CAVEAMBIENCE'),'volume':0.25})
+
+
 
     def is_point_near_edge(
         self, point: babase.Vec3, running: bool = False
