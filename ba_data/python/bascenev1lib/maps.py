@@ -816,10 +816,11 @@ class ThePad(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (1.1, 1.1, 1.0)
+        gnode.tint = (0.5, 0.56, 0.57)#(1.1, 1.1, 1.0)
         gnode.ambient_color = (1.1, 1.1, 1.0)
         gnode.vignette_outer = (0.7, 0.65, 0.75)
         gnode.vignette_inner = (0.95, 0.95, 0.93)
+
 
 
 class DoomShroom(bs.Map):
@@ -904,7 +905,7 @@ class DoomShroom(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (0.82, 1.10, 1.15)
+        gnode.tint = (0.5, 0.56, 0.57)#(0.82, 1.10, 1.15)
         gnode.ambient_color = (0.9, 1.3, 1.1)
         gnode.shadow_ortho = False
         gnode.vignette_outer = (0.76, 0.76, 0.76)
@@ -1624,7 +1625,7 @@ class Courtyard(bs.Map):
                 },
             )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (1.2, 1.17, 1.1)
+        gnode.tint = (0.5, 0.56, 0.57)#(1.2, 1.17, 1.1)
         gnode.ambient_color = (1.2, 1.17, 1.1)
         gnode.vignette_outer = (0.6, 0.6, 0.64)
         gnode.vignette_inner = (0.95, 0.95, 0.93)
@@ -1733,7 +1734,7 @@ class Rampage(bs.Map):
             },
         )
         gnode = bs.getactivity().globalsnode
-        gnode.tint = (1.2, 1.1, 0.97)
+        gnode.tint = (0.5, 0.56, 0.57)#(1.2, 1.1, 0.97)
         gnode.ambient_color = (1.3, 1.2, 1.03)
         gnode.vignette_outer = (0.62, 0.64, 0.69)
         gnode.vignette_inner = (0.97, 0.95, 0.93)
