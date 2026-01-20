@@ -413,15 +413,18 @@ class Spaz(bs.Actor):
         else:
             self._armor_text.text = ''
 
-        if self.shield_hitpoints > 0:
-            energy_text = f"{int(self.shield_hitpoints/10)}"
-            self._energy_text.text = f"| {energy_text}"
-            self._energy_offset.input2 = (
-                x,
-                self.HEALTH_UI_Y_OFFSET,
-                0,
-            )
-        else:
+        try:
+            if self.shield_hitpoints > 0:
+                energy_text = f"{int(self.shield_hitpoints/10)}"
+                self._energy_text.text = f"| {energy_text}"
+                self._energy_offset.input2 = (
+                    x,
+                    self.HEALTH_UI_Y_OFFSET,
+                    0,
+                )
+            else:
+                self._energy_text.text = ''
+        except:
             self._energy_text.text = ''
     
     def _shield_regen_tick(self) -> None:
@@ -1135,9 +1138,13 @@ class Spaz(bs.Actor):
                 self._last_hit_time = local_time
 
             if msg.hit_type not in ['punch']:
-                impulse_scale = 0.55
-            else:
-                impulse_scale = 0.8
+                impulse_scale = 0.75
+            
+            
+            # we have some armor, so less knockback
+            if bool(self.armorHP):
+                impulse_scale *= 0.45
+
 
             mag = msg.magnitude * self.impact_scale * impulse_scale
             velocity_mag = msg.velocity_magnitude * self.impact_scale * impulse_scale
