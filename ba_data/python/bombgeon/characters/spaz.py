@@ -95,7 +95,14 @@ class SpazCharacter(BombgeonCharBase):
         # will handle it accordingly.
         self._punch_power_scale *= 0.8
         self.bomb_type = 'normal_modified'
-        
+    
+    def handle_death(self, msg) -> None:
+        # custom death logic here
+        if not self._dead:
+            print('im so dead rn')
+        # don't forget to call the original function afterwards or else
+        # you'll remain with a half-dead, half-alive spaz.
+        BombgeonCharBase.handle_death(self, msg)
 
 
 # Registering character for usage

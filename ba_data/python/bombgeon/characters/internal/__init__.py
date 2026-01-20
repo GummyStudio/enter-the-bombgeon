@@ -14,6 +14,7 @@ import bascenev1 as bs
 from bascenev1lib.actor import spaz
 from bascenev1lib.actor.spazappearance import Appearance
 
+from bascenev1lib.actor.spazfactory import SpazFactory
 from bombgeon.utils import AVAILABLE_STYLES
 
 
@@ -199,8 +200,25 @@ class BombgeonCharBase(spaz.Spaz):
         self._skills = {}
         return super().on_expire()
     
-    def handlemessage(self, msg): return super().handlemessage(msg)
+    def handlemessage(self, msg):
+        if isinstance(msg, bs.DieMessage):
+            self.handle_death(msg)
+        else:
+            return super().handlemessage(msg)
 
+    def handle_death(self, msg) -> None:
+        wasdead = self._dead
+        self._dead = True
+        self.hitpoints = 0
+        if msg.immediate:
+            if self.node:
+                self.node.delete()
+        elif self.node:
+            self.node.hurt = 1.0
+            if self.play_big_death_sound and not wasdead:
+                SpazFactory.get().single_player_death_sound.play()
+            self.node.dead = True
+            bs.timer(2.0, self.node.delete)
 
 class CharacterSkill:
     """A bombgeon character's skill.
