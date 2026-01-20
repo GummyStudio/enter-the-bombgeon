@@ -49,6 +49,7 @@ class MainMenuWindow(bui.Window):
                     if self._in_game
                     else 'menu_minimal_no_back'
                 ),
+                color=(0.14, 0.14, 0.14)
             )
         )
 
@@ -220,7 +221,7 @@ class MainMenuWindow(bui.Window):
             and app.classic.subplatform == 'oculus'
         )
 
-        self._have_store_button = not self._in_game
+        self._have_store_button = False#not self._in_game
 
         self._have_settings_button = (
             not self._in_game or not app.ui_v1.use_toolbars
@@ -258,6 +259,7 @@ class MainMenuWindow(bui.Window):
                 label=bui.Lstr(resource=f'{self._r}.settingsText'),
                 transition_delay=self._tdelay,
                 on_activate_call=self._settings,
+                color=(0.3, 0.3, 0.3)
             )
 
         # Scattered eggs on easter.
@@ -294,6 +296,7 @@ class MainMenuWindow(bui.Window):
                     autoselect=self._use_autoselect,
                     label=bui.Lstr(resource='replayEndText'),
                     on_activate_call=self._confirm_end_replay,
+                    color=(0.3, 0.3, 0.3)
                 )
             elif bs.get_foreground_host_session() is not None:
                 bui.buttonwidget(
@@ -315,7 +318,9 @@ class MainMenuWindow(bui.Window):
                         if self._is_benchmark()
                         else self._confirm_end_game
                     ),
+                    color=(0.3, 0.3, 0.3)
                 )
+                
             else:
                 # Assume we're in a client-session.
                 bui.buttonwidget(
@@ -326,6 +331,7 @@ class MainMenuWindow(bui.Window):
                     autoselect=self._use_autoselect,
                     label=bui.Lstr(resource=f'{self._r}.leavePartyText'),
                     on_activate_call=self._confirm_leave_party,
+                    color=(0.3, 0.3, 0.3)
                 )
 
         self._store_button: bui.Widget | None
@@ -386,8 +392,10 @@ class MainMenuWindow(bui.Window):
                     )
                 ),
                 on_activate_call=self._quit,
+                color=(0.6, 0.3, 0.3),
                 transition_delay=self._tdelay,
             )
+
 
             # Scattered eggs on easter.
             if plus.get_v1_account_misc_read_val('easter', False):
@@ -480,6 +488,7 @@ class MainMenuWindow(bui.Window):
                 label='',
                 autoselect=True,
                 on_activate_call=bui.Call(self._change_replay_speed, -1),
+                color=(0.3, 0.3, 0.3)
             )
             bui.textwidget(
                 parent=self._root_widget,
@@ -502,6 +511,7 @@ class MainMenuWindow(bui.Window):
                 label='',
                 autoselect=True,
                 on_activate_call=bui.Call(self._change_replay_speed, 1),
+                color=(0.3, 0.3, 0.3)
             )
             bui.textwidget(
                 parent=self._root_widget,
@@ -528,6 +538,7 @@ class MainMenuWindow(bui.Window):
                 ),
                 autoselect=True,
                 on_activate_call=bui.Call(self._pause_or_resume_replay),
+                color=(0.3, 0.3, 0.3)
             )
             btn = bui.buttonwidget(
                 parent=self._root_widget,
@@ -540,6 +551,7 @@ class MainMenuWindow(bui.Window):
                 label='',
                 autoselect=True,
                 on_activate_call=bui.WeakCall(self._rewind_replay),
+                color=(0.3, 0.3, 0.3)
             )
             bui.textwidget(
                 parent=self._root_widget,
@@ -566,6 +578,7 @@ class MainMenuWindow(bui.Window):
                 label='',
                 autoselect=True,
                 on_activate_call=bui.WeakCall(self._forward_replay),
+                color=(0.3, 0.3, 0.3)
             )
             bui.textwidget(
                 parent=self._root_widget,
@@ -704,7 +717,6 @@ class MainMenuWindow(bui.Window):
                 position=(self._width * 0.5 - this_b_width * 0.5, v + 90),
                 size=(this_b_width, 45),
                 autoselect=True,
-                color=(0.45, 0.55, 0.45),
                 textcolor=(0.7, 0.8, 0.7),
                 label=bui.Lstr(
                     resource=(
@@ -715,6 +727,7 @@ class MainMenuWindow(bui.Window):
                 ),
                 transition_delay=demo_menu_delay,
                 on_activate_call=self._demo_menu_press,
+                color=(0.3, 0.3, 0.3)
             )
         else:
             self._demo_menu_button = None
@@ -745,6 +758,7 @@ class MainMenuWindow(bui.Window):
             label='',
             transition_delay=gather_delay,
             on_activate_call=self._gather_press,
+            color=(0.3, 0.3, 0.3)
         )
         bui.textwidget(
             parent=self._root_widget,
@@ -782,6 +796,7 @@ class MainMenuWindow(bui.Window):
             label=bui.Lstr(resource='playText'),
             transition_delay=self._t_delay_play,
             on_activate_call=self._play_press,
+            color=(0.14, 0.14, 0.14)
         )
         bui.containerwidget(
             edit=self._root_widget,
@@ -806,6 +821,7 @@ class MainMenuWindow(bui.Window):
             label='',
             transition_delay=watch_delay,
             on_activate_call=self._watch_press,
+            color=(0.3, 0.3, 0.3)
         )
         bui.textwidget(
             parent=self._root_widget,
@@ -846,6 +862,7 @@ class MainMenuWindow(bui.Window):
                 icon_color=account_type_icon_color,
                 transition_delay=self._tdelay,
                 enable_sound=account_type_enable_button_sound,
+                color=(0.3, 0.3, 0.3)
             )
 
             # Scattered eggs on easter.
@@ -884,6 +901,7 @@ class MainMenuWindow(bui.Window):
             label=bui.Lstr(resource=f'{self._r}.howToPlayText'),
             transition_delay=self._tdelay,
             on_activate_call=self._howtoplay,
+            color=(0.3, 0.3, 0.3)
         )
         self._how_to_play_button = btn
 
@@ -917,6 +935,7 @@ class MainMenuWindow(bui.Window):
             scale=scale,
             transition_delay=self._tdelay,
             on_activate_call=self._credits,
+            color=(0.3, 0.3, 0.3)
         )
         self._tdelay += self._t_delay_inc
         return h, v, scale
@@ -1009,6 +1028,7 @@ class MainMenuWindow(bui.Window):
             label=bui.Lstr(resource=f'{self._r}.resumeText'),
             autoselect=self._use_autoselect,
             on_activate_call=self._resume,
+            color=(0.3, 0.3, 0.3)
         )
         bui.containerwidget(edit=self._root_widget, cancel_button=btn)
 
@@ -1034,6 +1054,7 @@ class MainMenuWindow(bui.Window):
                 on_activate_call=call,
                 label=entry['label'],
                 autoselect=self._use_autoselect,
+                color=(0.3, 0.3, 0.3)
             )
         # Add a 'leave' button if the menu-owner has a player.
         if (self._input_player or self._connected_to_remote_player) and not (
@@ -1049,6 +1070,7 @@ class MainMenuWindow(bui.Window):
                 on_activate_call=self._leave,
                 label='',
                 autoselect=self._use_autoselect,
+                color=(0.3, 0.3, 0.3)
             )
 
             if (
@@ -1114,12 +1136,15 @@ class MainMenuWindow(bui.Window):
             bui.buttonwidget(
                 edit=self._pause_resume_button,
                 label=bui.charstr(bui.SpecialChar.PAUSE_BUTTON),
+                color=(0.3, 0.3, 0.3)
             )
+            
         else:
             bs.pause_replay()
             bui.buttonwidget(
                 edit=self._pause_resume_button,
                 label=bui.charstr(bui.SpecialChar.PLAY_BUTTON),
+                color=(0.3, 0.3, 0.3)
             )
 
     def _quit(self) -> None:
