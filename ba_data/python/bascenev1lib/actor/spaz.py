@@ -373,61 +373,68 @@ class Spaz(bs.Actor):
         self._update_health_text()
 
     def _update_health_text(self) -> None:
-        if not self.node:
+        if not self.is_alive():
             return
-
-        x = self.HEALTH_UI_BASE_X_OFFSET
-
-        hp_text = f"x{int(self.hitpoints/10)}"
-        self._hp_text.text = hp_text
-        hp_width = len(hp_text) * self.HEALTH_UI_CHAR_WIDTH_HP
-        self._hp_offset.input2 = (
-            x,
-            self.HEALTH_UI_Y_OFFSET,
-            0,
-        )
-        x += hp_width + self.HEALTH_UI_SPACING_SMALL
-
-        if self.shieldHP > 0:
-            shield_text = f"{int(self.shieldHP/10)}"
-            self._shield_text.text = f"| {shield_text}"
-            shield_width = len(shield_text) * self.HEALTH_UI_CHAR_WIDTH_SHIELD
-            self._shield_offset.input2 = (
-                x,
-                self.HEALTH_UI_Y_OFFSET,
-                0,
-            )
-            x += shield_width + self.HEALTH_UI_SPACING_SMALL
-        else:
-            self._shield_text.text = ''
-
-        if self.armorHP > 0:
-            armor_text = f"{int(self.armorHP/10)}"
-            self._armor_text.text = f"| {armor_text}"
-            armor_width = len(armor_text) * self.HEALTH_UI_CHAR_WIDTH_ARMOR
-            self._armor_offset.input2 = (
-                x,
-                self.HEALTH_UI_Y_OFFSET,
-                0,
-            )
-            x += armor_width + self.HEALTH_UI_SPACING_SMALL
-        else:
-            self._armor_text.text = ''
-
         try:
-            if self.shield_hitpoints > 0:
-                energy_text = f"{int(self.shield_hitpoints/10)}"
-                self._energy_text.text = f"| {energy_text}"
-                self._energy_offset.input2 = (
+
+            x = self.HEALTH_UI_BASE_X_OFFSET
+
+            hp_text = f"x{int(self.hitpoints/10)}"
+            self._hp_text.text = hp_text
+            hp_width = len(hp_text) * self.HEALTH_UI_CHAR_WIDTH_HP
+            self._hp_offset.input2 = (
+                x,
+                self.HEALTH_UI_Y_OFFSET,
+                0,
+            )
+            x += hp_width + self.HEALTH_UI_SPACING_SMALL
+
+            if self.shieldHP > 0:
+                shield_text = f"{int(self.shieldHP/10)}"
+                self._shield_text.text = f"| {shield_text}"
+                shield_width = len(shield_text) * self.HEALTH_UI_CHAR_WIDTH_SHIELD
+                self._shield_offset.input2 = (
                     x,
                     self.HEALTH_UI_Y_OFFSET,
                     0,
                 )
+                x += shield_width + self.HEALTH_UI_SPACING_SMALL
             else:
+                self._shield_text.text = ''
+
+            if self.armorHP > 0:
+                armor_text = f"{int(self.armorHP/10)}"
+                self._armor_text.text = f"| {armor_text}"
+                armor_width = len(armor_text) * self.HEALTH_UI_CHAR_WIDTH_ARMOR
+                self._armor_offset.input2 = (
+                    x,
+                    self.HEALTH_UI_Y_OFFSET,
+                    0,
+                )
+                x += armor_width + self.HEALTH_UI_SPACING_SMALL
+            else:
+                self._armor_text.text = ''
+
+            try:
+                if self.shield_hitpoints > 0:
+                    energy_text = f"{int(self.shield_hitpoints/10)}"
+                    self._energy_text.text = f"| {energy_text}"
+                    self._energy_offset.input2 = (
+                        x,
+                        self.HEALTH_UI_Y_OFFSET,
+                        0,
+                    )
+                else:
+                    self._energy_text.text = ''
+            except:
                 self._energy_text.text = ''
-        except:
-            self._energy_text.text = ''
-    
+        except bs.NodeNotFoundError:
+            if not self.exists():
+                self._armor_text.delete()
+                self._hp_text.delete()
+                self._shield_text.delete()
+                self._energy_text.delete()
+        
     def _shield_regen_tick(self) -> None:
         if not self.is_alive():
             return
