@@ -1,5 +1,5 @@
 """Loads characters."""
 
 from bombgeon.characters import (
-    spaz as _,
+    spaz as b9000,
 )
