@@ -45,7 +45,7 @@ ASSET_SOUNDTRACK_ENTRIES: dict[MusicType, AssetSoundtrackEntry] = {
     MusicType.VICTORY: AssetSoundtrackEntry(
         'victoryMusic', volume=1.2, loop=False
     ),
-    MusicType.CHAR_SELECT: AssetSoundtrackEntry('charSelectMusic', volume=0.4),
+    MusicType.CHAR_SELECT: AssetSoundtrackEntry('CAVEAMBIENCE', volume=0.4),
     MusicType.RUN_AWAY: AssetSoundtrackEntry('runAwayMusic', volume=1.2),
     MusicType.ONSLAUGHT: AssetSoundtrackEntry('runAwayMusic', volume=1.2),
     MusicType.KEEP_AWAY: AssetSoundtrackEntry('runAwayMusic', volume=1.2),
