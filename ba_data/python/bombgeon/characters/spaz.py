@@ -11,73 +11,66 @@ from .internal import (
     CharacterSkill,
 )
 
+from bascenev1lib.actor.spazfactory import SpazFactory
+
 # pylint: disable=super-init-not-called
 
 
-class ExplosivePunch(CharacterSkill):
-    """A punch that summons an explosion at the end."""
-
-    cooldown_time = 5.0
+class Punch(CharacterSkill):
+    """cool lil punch"""
+    cooldown_time = 0.6
 
     def perform(self, spaz: BombgeonCharBase) -> None:
+        spaz._punched_nodes = set()
         spaz.node.punch_pressed = True
         spaz.node.punch_pressed = False
+        if not spaz.node.hold_node:
+                bs.timer(
+                    0.1,
+                    bs.WeakCall(
+                        spaz._safe_play_sound,
+                        SpazFactory.get().swish_sound,
+                        0.8,
+                    ),
+                )
 
-        def the_blast():
-            if not spaz.can_do_action():
-                # you need to be active to have a punch_position, apparently?
-                return
-            Blast(spaz.node.punch_position).autoretain()
-
-        def _safesetattr(node: bs.Node | None, attr: str, val: Any) -> None:
-            if node:
-                setattr(node, attr, val)
-
-        bs.timer(0.19, bs.Call(_safesetattr, spaz.node, "invincible", True))
-        bs.timer(0.20, the_blast)
-        bs.timer(0.21, bs.Call(_safesetattr, spaz.node, "invincible", False))
+        
 
 
-class SleepyJump(CharacterSkill):
-    """A weak jump that stuns you."""
+class Jump(CharacterSkill):
+    """basic jump"""
 
-    cooldown_time = 3.0
+    cooldown_time = 0.2
 
     def perform(self, spaz: BombgeonCharBase) -> None:
         # do a standard jump
         spaz.node.jump_pressed = True
         spaz.node.jump_pressed = False
-        # apply awesome force
-        spaz.node.handlemessage(
-            'kick_back',
-            spaz.node.position[0],
-            spaz.node.position[1]-1,
-            spaz.node.position[2],
-            0,
-            1,
-            0,
-            750,
-        )
-        # stun lol
-        bs.timer(0.01, lambda: spaz.node.handlemessage("knockout", 600))
-
+        
 
 class SpazCharacter(BombgeonCharBase):
     """Spaz character."""
 
     # Rule of thumb: Don't use ``super().*``; instead, run ``BombgeonCharBase.*(self)``.
     # We inject character-based functions on runtime and python doesn't like that a lot.
-    health = 500
+    health = 1000
+    shields = 400
+    armor = 150
     retain_vanilla = False
+    speed = 0.9
 
-    skill_punch = ExplosivePunch
-    skill_jump = SleepyJump
+            
+
+    skill_punch = Punch
+    skill_jump =  Jump
 
     def __init__(self):
         # To define character specific variables, do ``def __init__(self)``
         # without calling anything but your own variables, and the system
         # will handle it accordingly.
-        ...
+        self._punch_power_scale *= 0.8
+        self.bomb_type = 'normal_modified'
+        
 
 
 # Registering character for usage
