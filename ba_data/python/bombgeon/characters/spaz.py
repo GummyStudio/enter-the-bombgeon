@@ -12,6 +12,7 @@ from .internal import (
 )
 
 from bascenev1lib.actor.spazfactory import SpazFactory
+from bascenev1lib.actor.bomb import Bomb
 
 # pylint: disable=super-init-not-called
 
@@ -34,9 +35,6 @@ class Punch(CharacterSkill):
                     ),
                 )
 
-        
-
-
 class Jump(CharacterSkill):
     """basic jump"""
 
@@ -46,6 +44,20 @@ class Jump(CharacterSkill):
         # do a standard jump
         spaz.node.jump_pressed = True
         spaz.node.jump_pressed = False
+
+class Bomb2(CharacterSkill):
+    """basic jump"""
+
+    cooldown_time = 0.2
+
+    def perform(self, spaz: BombgeonCharBase) -> None:
+        # do a standard jump
+        spaz.node.bomb_pressed = True
+        spaz.node.bomb_pressed = False
+        if not spaz.node.hold_node:
+            spaz.drop_bomb()
+        
+        
         
 
 class SpazCharacter(BombgeonCharBase):
@@ -63,6 +75,7 @@ class SpazCharacter(BombgeonCharBase):
 
     skill_punch = Punch
     skill_jump =  Jump
+    skill_bomb=  Bomb2
 
     def __init__(self):
         # To define character specific variables, do ``def __init__(self)``
