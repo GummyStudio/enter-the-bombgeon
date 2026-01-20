@@ -46,9 +46,9 @@ class Jump(CharacterSkill):
         spaz.node.jump_pressed = False
 
 class Bomb2(CharacterSkill):
-    """basic jump"""
+    """bbombp"""
 
-    cooldown_time = 0.2
+    cooldown_time = 0.0
 
     def perform(self, spaz: BombgeonCharBase) -> None:
         # do a standard jump
@@ -56,6 +56,17 @@ class Bomb2(CharacterSkill):
         spaz.node.bomb_pressed = False
         if not spaz.node.hold_node:
             spaz.drop_bomb()
+
+class Grab(CharacterSkill):
+    """grab"""
+
+    cooldown_time = 0.0
+
+    def perform(self, spaz: BombgeonCharBase) -> None:
+        # do a standard jump
+        spaz.node.pickup_pressed = True
+        spaz.node.pickup_pressed = False
+     
         
         
         
@@ -76,7 +87,8 @@ class SpazCharacter(BombgeonCharBase):
     skill_punch = Punch
     skill_jump =  Jump
     skill_bomb=  Bomb2
-
+    skill_grab=Grab
+    
     def __init__(self):
         # To define character specific variables, do ``def __init__(self)``
         # without calling anything but your own variables, and the system
