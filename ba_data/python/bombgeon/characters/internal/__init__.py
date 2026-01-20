@@ -91,6 +91,9 @@ class BombgeonCharBase(spaz.Spaz):
         self.shieldHP = self.shieldHP_max = self.shields
         self.armorHP = self.armorHP_max = self.armor
 
+        # actionable check
+        self.actionable = True
+
         self._skills: dict[_ChrBtn, Optional[CharacterSkill]] = {
             _ChrBtn.PUNCH: None,
             _ChrBtn.GRAB: None,
@@ -138,7 +141,7 @@ class BombgeonCharBase(spaz.Spaz):
         AKA if we exist, are alive and aren't stunned.
         """
         return (
-            self.exists() and self.is_alive() and not self.node.knockout > 0.0 and not self.frozen
+            self.exists() and self.is_alive() and not self.node.knockout > 0.0 and not self.frozen and self.actionable
         )
 
     def _handle_skill(self, skill_input: _ChrBtn) -> Any:
@@ -160,9 +163,33 @@ class BombgeonCharBase(spaz.Spaz):
                 case _ChrBtn.JUMP:
                     super().on_jump_press()
             return
-
+        
+        #Anyway show icons
+        
+       
         if skill.can_perform():
             skill.perform(self)
+            if skill.show_cooldown:
+                match skill_input:
+                    case _ChrBtn.GRAB:
+                        self.node.mini_billboard_1_texture = skill.texture_icon
+                        self.node.mini_billboard_1_start_time = bs.time() * 1000
+                        self.node.mini_billboard_1_end_time = (bs.time() * 1000) + (skill.cooldown_time * 1000)
+                    case _ChrBtn.BOMB:
+                        self.node.mini_billboard_2_texture = skill.texture_icon
+                        self.node.mini_billboard_2_start_time = bs.time() * 1000
+                        self.node.mini_billboard_2_end_time = (bs.time() * 1000) + (skill.cooldown_time * 1000)
+                    case _ChrBtn.JUMP:
+                        self.node.mini_billboard_3_texture = skill.texture_icon
+                        self.node.mini_billboard_3_start_time = bs.time() * 1000
+                        self.node.mini_billboard_3_end_time = (bs.time() * 1000) + (skill.cooldown_time * 1000)
+                try:
+                    bs.timer(skill.cooldown_time, bs.Call(super()._flash_billboard, skill.texture_icon))
+                except bs.NotFoundError:
+                    pass
+          
+             
+
 
     def _handle_movement(self) -> None: ...
 
@@ -185,6 +212,10 @@ class CharacterSkill:
 
     cooldown_time: float = 1.0
     """Cooldown time in seconds."""
+    texture_icon: bs.Texture = None
+    """The icon to show"""
+    show_cooldown: bool = False
+    """ show the cooldown."""
 
     def __init__(self) -> None:
         self._last_use: float = -9999.9
