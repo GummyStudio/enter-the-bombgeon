@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from typing import Any, Sequence, Callable
 
 POWERUP_WEAR_OFF_TIME = 20000
+DAMAGE_STACK_TIME = 1.0
+
 
 # Obsolete - just used for demo guy now.
 BASE_PUNCH_POWER_SCALE = 1.2
@@ -68,6 +70,27 @@ class Spaz(bs.Actor):
     default_boxing_gloves = False
     default_shields = False
     default_hitpoints = 1000
+
+    # offsets so i dont get lost
+    HEALTH_UI_Y_OFFSET = 0.0
+    HEALTH_UI_SCALE = 0.006
+    HEALTH_UI_TRANSPARANCY = 0.55
+
+    HEALTH_UI_HP_COLOR = (1.0, 1.0, 1.0)
+    HEALTH_UI_SHIELD_COLOR = (0.3, 0.6, 1.0)
+    HEALTH_UI_ARMOR_COLOR = (1.0, 0.6, 0.1)
+    HEALTH_UI_ENERGY_COLOR = (0.0, 1.0, 1.0)
+
+    HEALTH_UI_CHAR_WIDTH_HP = 0.09
+    HEALTH_UI_CHAR_WIDTH_SHIELD = 0.14
+    HEALTH_UI_CHAR_WIDTH_ARMOR = 0.13
+    HEALTH_UI_CHAR_WIDTH_ENERGY = 0.12
+
+    HEALTH_UI_BASE_X_OFFSET = -0.55
+    HEALTH_UI_SPACING_SMALL = 0.02
+    HEALTH_UI_SPACING_LARGE = 0.04
+
+    
 
     def __init__(
         self,
@@ -167,6 +190,8 @@ class Spaz(bs.Actor):
         )
         self.shield: bs.Node | None = None
 
+       
+
         if start_invincible:
 
             def _safesetattr(node: bs.Node | None, attr: str, val: Any) -> None:
@@ -230,10 +255,187 @@ class Spaz(bs.Actor):
         self.punch_callback: Callable[[Spaz], Any] | None = None
         self.pick_up_powerup_callback: Callable[[Spaz], Any] | None = None
 
+
+        # Lets start defining global stuff for everyone (vanilla spazes, all characters)
+
         if self.source_player:
             self.team = self.source_player.team
         else:
+            # Create a team... they're not on one so fuck you lmao
             self.team = bs.Team()
+
+             
+        self._hp_text = bs.newnode(
+            'text',
+            owner=self.node,
+            attrs={
+                'text': '',
+                'in_world': True,
+                'scale': self.HEALTH_UI_SCALE,
+                'shadow': 0.5,
+                'flatness': 1.0,
+                'h_align': 'left',
+                'v_align': 'center',
+                'color': self.HEALTH_UI_HP_COLOR,
+                'opacity': self.HEALTH_UI_TRANSPARANCY 
+            }
+        )
+
+        self._shield_text = bs.newnode(
+            'text',
+            owner=self.node,
+            attrs={
+                'text': '',
+                'in_world': True,
+                'scale': self.HEALTH_UI_SCALE,
+                'shadow': 0.5,
+                'flatness': 1.0,
+                'h_align': 'left',
+                'v_align': 'center',
+                'color': self.HEALTH_UI_SHIELD_COLOR,
+                'opacity': self.HEALTH_UI_TRANSPARANCY 
+            }
+        )
+
+        self._armor_text = bs.newnode(
+            'text',
+            owner=self.node,
+            attrs={
+                'text': '',
+                'in_world': True,
+                'scale': self.HEALTH_UI_SCALE,
+                'shadow': 0.5,
+                'flatness': 1.0,
+                'h_align': 'left',
+                'v_align': 'center',
+                'color': self.HEALTH_UI_ARMOR_COLOR,
+                'opacity': self.HEALTH_UI_TRANSPARANCY 
+            }
+        )
+        self._energy_text = bs.newnode(
+            'text',
+            owner=self.node,
+            attrs={
+                'text': '',
+                'in_world': True,
+                'scale': self.HEALTH_UI_SCALE,
+                'shadow': 0.5,
+                'flatness': 1.0,
+                'h_align': 'left',
+                'v_align': 'center',
+                'color': self.HEALTH_UI_ENERGY_COLOR,
+                'opacity': self.HEALTH_UI_TRANSPARANCY 
+            }
+        )
+        # i hate math
+        self._hp_offset = bs.newnode('math', owner=self.node, attrs={'operation': 'add'})
+        self.node.connectattr('position', self._hp_offset, 'input1')
+        self._hp_offset.input2 = (0, 0, 0.0)
+        self._hp_offset.connectattr('output', self._hp_text, 'position')
+
+        self._shield_offset = bs.newnode('math', owner=self.node, attrs={'operation': 'add'})
+        self.node.connectattr('position', self._shield_offset, 'input1')
+        self._shield_offset.input2 = (0, 0, 0.0)
+        self._shield_offset.connectattr('output', self._shield_text, 'position')
+
+        self._energy_offset = bs.newnode('math', owner=self.node, attrs={'operation': 'add'})
+        self.node.connectattr('position', self._energy_offset, 'input1')
+        self._energy_offset.input2 = (0, 0, 0.0)
+        self._energy_offset.connectattr('output', self._energy_text, 'position')
+        
+
+        self._armor_offset = bs.newnode('math', owner=self.node, attrs={'operation': 'add'})
+        self.node.connectattr('position', self._armor_offset, 'input1')
+        self._armor_offset.input2 = (0, 0, 0.0)
+        self._armor_offset.connectattr('output', self._armor_text, 'position')
+
+        self._damage_stack_last_time: float = -9999.9
+        self._damage_stack: int = 0
+        # here are some extra hp values i want to use
+        self.armorHP = 0
+        self.armorHP_max = 0
+
+        self.shieldHP = 0
+        self.shieldHP_max = 0
+
+        self.last_damage_time = bs.time()
+        self.shield_regen_rate = 50
+        self.shield_regen_delay = 2.5
+        self._shield_regen_timer: bs.Timer | None = None
+        self._shield_regen_timer = bs.Timer(
+            0.5, bs.WeakCall(self._shield_regen_tick), repeat=True
+        )
+        bs.timer(0.1, self.tick, repeat=True)
+
+    def tick(self):
+        # simple ticks
+        self._update_health_text()
+
+    def _update_health_text(self) -> None:
+        if not self.node:
+            return
+
+        x = self.HEALTH_UI_BASE_X_OFFSET
+
+        hp_text = f"x{int(self.hitpoints/10)}"
+        self._hp_text.text = hp_text
+        hp_width = len(hp_text) * self.HEALTH_UI_CHAR_WIDTH_HP
+        self._hp_offset.input2 = (
+            x,
+            self.HEALTH_UI_Y_OFFSET,
+            0,
+        )
+        x += hp_width + self.HEALTH_UI_SPACING_SMALL
+
+        if self.shieldHP > 0:
+            shield_text = f"{int(self.shieldHP/10)}"
+            self._shield_text.text = f"| {shield_text}"
+            shield_width = len(shield_text) * self.HEALTH_UI_CHAR_WIDTH_SHIELD
+            self._shield_offset.input2 = (
+                x,
+                self.HEALTH_UI_Y_OFFSET,
+                0,
+            )
+            x += shield_width + self.HEALTH_UI_SPACING_SMALL
+        else:
+            self._shield_text.text = ''
+
+        if self.armorHP > 0:
+            armor_text = f"{int(self.armorHP/10)}"
+            self._armor_text.text = f"| {armor_text}"
+            armor_width = len(armor_text) * self.HEALTH_UI_CHAR_WIDTH_ARMOR
+            self._armor_offset.input2 = (
+                x,
+                self.HEALTH_UI_Y_OFFSET,
+                0,
+            )
+            x += armor_width + self.HEALTH_UI_SPACING_SMALL
+        else:
+            self._armor_text.text = ''
+
+        if self.shield_hitpoints > 0:
+            energy_text = f"{int(self.shield_hitpoints/10)}"
+            self._energy_text.text = f"| {energy_text}"
+            self._energy_offset.input2 = (
+                x,
+                self.HEALTH_UI_Y_OFFSET,
+                0,
+            )
+        else:
+            self._energy_text.text = ''
+    
+    def _shield_regen_tick(self) -> None:
+        if not self.is_alive():
+            return
+
+        if bs.time() - self.last_damage_time < self.shield_regen_delay:
+            return
+
+        if self.shieldHP < self.shieldHP_max:
+            self.shieldHP = min(
+                self.shieldHP_max,
+                self.shieldHP + int(self.shield_regen_rate * 0.5),
+            )
 
     @override
     def exists(self) -> bool:
@@ -729,6 +931,9 @@ class Spaz(bs.Actor):
         elif isinstance(msg, bs.ImpactDamageMessage):
             # Eww; seems we have to do this in a timer or it wont work right.
             # (since we're getting called from within update() perhaps?..)
+
+            # no fall damage plz
+            return
             bs.timer(0.001, bs.WeakCall(self._hit_self, msg.intensity))
 
         elif isinstance(msg, bs.PowerupMessage):
@@ -902,12 +1107,13 @@ class Spaz(bs.Actor):
                 self.node.frozen = False
 
         elif isinstance(msg, bs.HitMessage):
+       
             if not self.node:
                 return None
             
             if msg._source_player and self.source_player:
                 if msg._source_player.team == self.team:
-                    return
+                    return None
 
             if self.node.invincible:
                 SpazFactory.get().block_sound.play(
@@ -915,6 +1121,7 @@ class Spaz(bs.Actor):
                     position=self.node.position,
                 )
                 return True
+            _time = bs.time()
 
             # If we were recently hit, don't count this as another.
             # (so punch flurries and bomb pileups essentially count as 1 hit).
@@ -938,6 +1145,8 @@ class Spaz(bs.Actor):
 
             
             damage_scale /= impulse_scale
+            
+            self.last_damage_time = bs.time()
 
         
 
@@ -1068,11 +1277,11 @@ class Spaz(bs.Actor):
                 # If damage was significant, lets show it.
                 if damage >= 350:
                     assert msg.force_direction is not None
-                    bs.show_damage_count(
-                        '-' + str(int(damage / 10)) + '%',
-                        msg.pos,
-                        msg.force_direction,
-                    )
+                    #bs.show_damage_count(
+                    #    '-' + str(int(damage / 10)) + '%',
+                    #    msg.pos,
+                    #    msg.force_direction,
+                    #)
 
                 # Let's always add in a super-punch sound with boxing
                 # gloves just to differentiate them.
@@ -1174,10 +1383,33 @@ class Spaz(bs.Actor):
                 # If we're holding something, drop it.
                 if damage > 0.0 and self.node.hold_node:
                     self.node.hold_node = None
-                self.hitpoints -= damage
+                
+                # here we handle our epic new hp bars
+                remaining_damage = damage
+
+                # Armor absorbs damage first by 50% so basically 50 armor is 100 hp
+                if self.armorHP > 0 and remaining_damage > 0:
+                    absorbed = min(remaining_damage, self.armorHP * 2)
+                    armor_damage = absorbed * 0.5
+
+                    self.armorHP -= int(armor_damage)
+                    remaining_damage -= absorbed
+
+                # Shield absorbs next
+                if self.shieldHP > 0 and remaining_damage > 0:
+                    absorbed = min(self.shieldHP, remaining_damage)
+                    self.shieldHP -= absorbed
+                    remaining_damage -= absorbed
+
+                # HP absorbs last
+                if remaining_damage > 0:
+                    self.hitpoints -= remaining_damage
+
                 self.node.hurt = (
                     1.0 - float(self.hitpoints) / self.hitpoints_max
                 )
+
+                
 
                 # If we're cursed, *any* damage blows us up.
                 if self._cursed and damage > 0:
@@ -1203,6 +1435,60 @@ class Spaz(bs.Actor):
                 damage_avg = self.node.damage_smoothed * damage_scale
                 if damage_avg >= 1000:
                     self.shatter()
+            
+            
+           
+            
+            # our code
+
+            
+            # if we took too long on receiving damage, reset our tracked damage
+            if self._damage_stack_last_time + DAMAGE_STACK_TIME < _time:
+                self._damage_stack = 0
+            self._damage_stack_last_time = _time
+
+            incoming_damage = int(damage / 10 / self.impact_scale)
+            self._damage_stack += incoming_damage
+            damage_str = f'{self._damage_stack}%'
+        
+            
+            from bascenev1lib.actor.popuptext import PopupText
+            # Only show damage if the type was as following:                 
+            if msg.hit_type in ['punch', 'explosion', 'impact'] and self.exists():
+                
+                # If the type is impact and we allow it, show it
+                if msg.hit_type == 'impact':
+                    #if not msg.show_impact_hurt:
+                        return
+
+                    
+                if int(incoming_damage) != 0:
+                    assert msg.force_direction is not None
+                    self.damagepopup = PopupText(
+                            damage_str,
+                            color=bs.safecolor(self.node.color),
+                            scale=1 * 1.3 if not self.is_alive() and not self.no_more_epic_sound else 1,
+                            position = self.node.position
+                            )
+                    if not self.is_alive() and not self.no_more_epic_sound:
+                            
+                            bs.getsound(
+                                    'orchestraHit4'
+                                    ).play(
+                                )
+                            self.no_more_epic_sound = True
+
+                    
+
+
+                    
+                    
+                    #ba.show_damage_count(
+                    #    '-' + str(int(damage_lowered)) + '%',
+                    #    msg.pos,
+                    #    msg.force_direction,
+                    #    size=(max(1,damage_lowered*0.003))
+                    #)
 
         elif isinstance(msg, BombDiedMessage):
             self.bomb_count += 1
@@ -1279,6 +1565,7 @@ class Spaz(bs.Actor):
                 vel = self.node.punch_momentum_linear
 
                 self._punched_nodes.add(node)
+                
                 node.handlemessage(
                     bs.HitMessage(
                         pos=ppos,
