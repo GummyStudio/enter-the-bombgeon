@@ -16,7 +16,7 @@ def get_appearances(include_locked: bool = False) -> list[str]:
     assert bs.app.classic is not None
     get_purchased = plus.get_purchased
     disallowed = []
-    if not include_locked:
+    if False: # FIXME: temp
         # Hmm yeah this'll be tough to hack...
         if not get_purchased('characters.santa'):
             disallowed.append('Santa Claus')
