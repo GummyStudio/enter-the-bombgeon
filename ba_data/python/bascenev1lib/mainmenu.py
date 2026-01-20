@@ -43,13 +43,29 @@ class MainMenuActivity(bs.Activity[bs.Player, bs.Team]):
         self._update_timer: bs.Timer | None = None
         self._news: NewsDisplay | None = None
         self._attract_mode_timer: bs.Timer | None = None
-
+    def move_spaz(self):
+        if self.spaz:
+            self.spaz.on_hold_position_press()
+            self.spaz.on_move_left_right(random.uniform(-0.56, 0.56))
+            self.spaz.on_move_up_down(-1)
     @override
     def on_transition_in(self) -> None:
         # pylint: disable=too-many-locals
         # pylint: disable=too-many-statements
         # pylint: disable=too-many-branches
         super().on_transition_in()
+        from bascenev1lib.actor import spaz
+        self.spaz = spaz.Spaz(start_invincible=False, color=(0.5, 0.5, 0.5), highlight=(0.13, 0.13, 0.13))
+        self.spaz.impact_scale = 0.1
+        self.spaz._hp_text.delete()
+        self.spaz.node.attack_sounds = []
+        self.spaz.node.jump_sounds = []
+        self.spaz.node.attack_sounds = []
+        self.spaz.node.impact_sounds = []
+        self.spaz.node.death_sounds = []
+        self.spaz.node.pickup_sounds = []
+        self.spaz.node.fall_sounds = []
+        self.spaz.handlemessage(bs.StandMessage((0, 3, -4.5), 0))
         random.seed(123)
         app = bs.app
         env = app.env
@@ -189,7 +205,7 @@ class MainMenuActivity(bs.Activity[bs.Player, bs.Team]):
                         'scale': 1,
                         'vr_depth': -60,
                         'position': pos,
-                        'text': bs.Lstr(resource='testBuildText'),
+                        'text': '',
                     },
                 )
             )
@@ -197,39 +213,25 @@ class MainMenuActivity(bs.Activity[bs.Player, bs.Team]):
                 assert self.beta_info.node
                 bs.animate(self.beta_info.node, 'opacity', {1.3: 0, 1.8: 1.0})
 
-        mesh = bs.getmesh('thePadLevel')
-        trees_mesh = bs.getmesh('trees')
-        bottom_mesh = bs.getmesh('thePadLevelBottom')
-        color_texture = bs.gettexture('thePadLevelColor')
-        trees_texture = bs.gettexture('treesColor')
-        bgtex = bs.gettexture('menuBG')
-        bgmesh = bs.getmesh('thePadBG')
+        mesh = bs.getmesh('doomShroomLevel')
+        color_texture = bs.gettexture('doomShroomLevelColor')
+        bgtex = bs.gettexture('doomShroomBGColor')
+        bgmesh = bs.getmesh('doomShroomBG')
 
         # Load these last since most platforms don't use them.
         vr_bottom_fill_mesh = bs.getmesh('thePadVRFillBottom')
         vr_top_fill_mesh = bs.getmesh('thePadVRFillTop')
 
         gnode = self.globalsnode
-        gnode.camera_mode = 'rotate'
+        gnode.camera_mode = 'follow'
 
-        tint = (1.14, 1.1, 1.0)
+        tint = (0.5, 0.56, 0.57)
         gnode.tint = tint
-        gnode.ambient_color = (1.06, 1.04, 1.03)
-        gnode.vignette_outer = (0.45, 0.55, 0.54)
-        gnode.vignette_inner = (0.99, 0.98, 0.98)
+        gnode.ambient_color = (0.9, 0.9, 0.9)
+        gnode.vignette_outer = (0, 0, 0)
+        gnode.vignette_inner = (0.84, 0.89, 1.1)
 
-        self.bottom = bs.NodeActor(
-            bs.newnode(
-                'terrain',
-                attrs={
-                    'mesh': bottom_mesh,
-                    'lighting': False,
-                    'reflection': 'soft',
-                    'reflection_scale': [0.45],
-                    'color_texture': color_texture,
-                },
-            )
-        )
+        
         self.vr_bottom_fill = bs.NodeActor(
             bs.newnode(
                 'terrain',
@@ -252,29 +254,21 @@ class MainMenuActivity(bs.Activity[bs.Player, bs.Team]):
                 },
             )
         )
+        from bascenev1lib.gameutils import SharedObjects
         self.terrain = bs.NodeActor(
             bs.newnode(
                 'terrain',
                 attrs={
                     'mesh': mesh,
+                    'collision_mesh': bs.getcollisionmesh('doomShroomLevelCollide'),
                     'color_texture': color_texture,
                     'reflection': 'soft',
                     'reflection_scale': [0.3],
+                    'materials': [SharedObjects.get().footing_material]
                 },
             )
         )
-        self.trees = bs.NodeActor(
-            bs.newnode(
-                'terrain',
-                attrs={
-                    'mesh': trees_mesh,
-                    'lighting': False,
-                    'reflection': 'char',
-                    'reflection_scale': [0.1],
-                    'color_texture': trees_texture,
-                },
-            )
-        )
+        
         self.bgterrain = bs.NodeActor(
             bs.newnode(
                 'terrain',
@@ -290,6 +284,7 @@ class MainMenuActivity(bs.Activity[bs.Player, bs.Team]):
 
         self._update_timer = bs.Timer(1.0, self._update, repeat=True)
         self._update()
+        bs.timer(0.89, self.move_spaz, repeat=True)
 
         # Hopefully this won't hitch but lets space these out anyway.
         bui.add_clean_frame_callback(bs.WeakCall(self._start_preloads))
@@ -442,6 +437,7 @@ class MainMenuActivity(bs.Activity[bs.Player, bs.Team]):
         lang = app.lang.language
         if lang != self._language:
             self._language = lang
+            left = 300
             y = 20
             base_scale = 1.1
             self._word_actors = []
@@ -524,104 +520,109 @@ class MainMenuActivity(bs.Activity[bs.Player, bs.Team]):
                     rotate=-7,
                 )
             else:
-                base_x = -170
-                x = base_x - 20
+                base_x = -180
+                x = base_x - 60
                 spacing = 55 * base_scale
-                y_extra = 0 if (env.demo or env.arcade) else 0
+                y_extra = 68
                 xv1 = x
                 delay1 = delay
-                for shadow in (True, False):
-                    x = xv1
-                    delay = delay1
-                    self._make_word(
-                        'B',
-                        x - 50,
-                        y - 23 + 0.8 * y_extra,
-                        scale=1.3 * base_scale,
-                        delay=delay,
-                        vr_depth_offset=3,
-                        shadow=shadow,
+                scale = 0.5
+
+                image = bs.newnode('image', attrs={
+                    'texture': bs.gettexture('logo2'),
+                    'position': (-500, 0),
+                    'scale': [scale],
+                    'attach': 'center',
+                    'absolute_scale': True,
+                })
+              
+                cmb = bs.newnode('combine', owner=image, attrs={'size': 2})
+                cmb.connectattr('output', image, 'position')
+                keys = {}
+                time_v = 0.0
+
+                # Gen some random keys for that stop-motion-y look
+                for _i in range(10):
+                    keys[time_v] = x + (random.random() - 0.5) * 0.7 * 2
+                    time_v += random.random() * 0.1
+                bs.animate(cmb, 'input0', keys, loop=True)
+                keys = {}
+                time_v = 0.0
+                for _i in range(10):
+                    keys[time_v * self._ts] = (
+                        y + (random.random() - 0.5) * 0.7 * 2
                     )
-                    x += spacing
-                    delay += delay_inc
-                    self._make_word(
-                        'm',
-                        x,
-                        y + y_extra,
-                        delay=delay,
-                        scale=base_scale,
-                        shadow=shadow,
-                    )
-                    x += spacing * 1.25
-                    delay += delay_inc
-                    self._make_word(
-                        'b',
-                        x,
-                        y + y_extra - 10,
-                        delay=delay,
-                        scale=1.1 * base_scale,
-                        vr_depth_offset=5,
-                        shadow=shadow,
-                    )
-                    x += spacing * 0.85
-                    delay += delay_inc
-                    self._make_word(
-                        'S',
-                        x,
-                        y - 25 + 0.8 * y_extra,
-                        scale=1.35 * base_scale,
-                        delay=delay,
-                        vr_depth_offset=14,
-                        shadow=shadow,
-                    )
-                    x += spacing
-                    delay += delay_inc
-                    self._make_word(
-                        'q',
-                        x,
-                        y + y_extra,
-                        delay=delay,
-                        scale=base_scale,
-                        shadow=shadow,
-                    )
-                    x += spacing * 0.9
-                    delay += delay_inc
-                    self._make_word(
-                        'u',
-                        x,
-                        y + y_extra,
-                        delay=delay,
-                        scale=base_scale,
-                        vr_depth_offset=7,
-                        shadow=shadow,
-                    )
-                    x += spacing * 0.9
-                    delay += delay_inc
-                    self._make_word(
-                        'a',
-                        x,
-                        y + y_extra,
-                        delay=delay,
-                        scale=base_scale,
-                        shadow=shadow,
-                    )
-                    x += spacing * 0.64
-                    delay += delay_inc
-                    self._make_word(
-                        'd',
-                        x,
-                        y + y_extra - 10,
-                        delay=delay,
-                        scale=1.1 * base_scale,
-                        vr_depth_offset=6,
-                        shadow=shadow,
-                    )
-                self._make_logo(
-                    base_x - 28,
-                    125 + y + 1.2 * y_extra,
-                    0.32 * base_scale,
-                    delay=base_delay,
-                )
+                    time_v += random.random() * 0.1
+                bs.animate(cmb, 'input1', keys, loop=True)
+                
+                cmb = bs.newnode('combine', owner=image, attrs={'size': 2})
+
+                keys = {
+                    delay: 0.0,
+                    delay + 0.1: 700.0 * scale,
+                    delay + 0.2: 600.0 * scale,
+                }
+                bs.animate(cmb, 'input0', keys)
+                bs.animate(cmb, 'input1', keys)
+                cmb.connectattr('output', image, 'scale')
+                #for shadow in (True, False):
+                #    x = xv1
+                #    delay = delay1
+                #    self._make_word(
+                #        'Enter',
+                #        x - 75-100,
+                #        y + y_extra,
+                #        scale=base_scale,
+                ##        delay=delay,
+                 #       vr_depth_offset=3,
+                 #       shadow=shadow,
+                 #   )
+                 #   x += spacing * 4
+                 #   delay += delay_inc
+                 #   self._make_word(
+                 #       'The',
+                 #       x+129-178,
+                 #       y + y_extra,
+                #        delay=delay,
+                #        scale=base_scale,
+                #        shadow=shadow,
+                #    )
+                #    x += spacing * 1.6
+                #    delay += delay_inc
+                #    yextra2 = 120
+                #    wordx=280
+                #   self._make_word(
+                #        'B',
+                #        x - left+75.6+wordx,
+                #        y - y_extra + yextra2,
+                #        delay=delay,
+                #        scale=1.1 * base_scale,
+                #        vr_depth_offset=5,
+                #        shadow=shadow,
+                #    )
+                #    x += spacing * 0.85
+                #    delay += delay_inc
+                #    self._make_logo(
+                #        
+                #        x=x - left + 124+wordx,
+                #        y=y + y_extra-61+ yextra2,
+                #        scale=0.2,
+                #        delay=delay,
+                #        vr_depth_offset=14,
+                #        jitter_scale=1.2
+                #    )
+                #    x += spacing * 0.85
+                #    delay += delay_inc
+                #    self._make_word(
+                #        'mbgeon',
+                #        x - left + 173+wordx,
+                #        y - y_extra+ yextra2,
+                #        scale=1.1 * base_scale,
+                #        delay=delay,
+                #        vr_depth_offset=14,
+                #        shadow=shadow,
+                #    )
+                
 
     def _make_word(
         self,
