@@ -366,6 +366,7 @@ class Spaz(bs.Actor):
             0.5, bs.WeakCall(self._shield_regen_tick), repeat=True
         )
         bs.timer(0.1, self.tick, repeat=True)
+        self.no_more_epic_sound=False
 
     def tick(self):
         # simple ticks
@@ -1115,7 +1116,10 @@ class Spaz(bs.Actor):
                 return None
             
             if msg._source_player and self.source_player:
-                if msg._source_player.team == self.team:
+                # We hit ourselves...
+                if msg._source_player == self.source_player:
+                    pass
+                elif msg._source_player.team == self.team:
                     return None
 
             if self.node.invincible:
@@ -1136,6 +1140,8 @@ class Spaz(bs.Actor):
             ):
                 self._num_times_hit += 1
                 self._last_hit_time = local_time
+
+            impulse_scale=1.0
 
             if msg.hit_type not in ['punch']:
                 impulse_scale = 0.75
@@ -1642,6 +1648,10 @@ class Spaz(bs.Actor):
             # (hmm - should make this customizable or more low level).
             held = self.node.hold_node
             if held and held.getnodetype() == 'flag':
+                return True
+            
+            if opposingnode.getnodetype() == 'spaz':
+                # We'll return to this later.
                 return True
 
             # Note: hold_body needs to be set before hold_node.
