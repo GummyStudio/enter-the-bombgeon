@@ -681,9 +681,7 @@ class Blast(bs.Actor):
                 mag *= 2.5
             elif self.blast_type == 'tnt':
                 mag *= 2.0
-            elif self.blast_type == 'normal_modified':
-                mag *= 1.4
-
+          
             node.handlemessage(
                 bs.HitMessage(
                     pos=nodepos,
@@ -765,6 +763,8 @@ class Bomb(bs.Actor):
             self.blast_radius *= 0.7
         elif self.bomb_type == 'tnt':
             self.blast_radius *= 1.45
+        elif self.bomb_type == 'normal_modified':
+            self.blast_radius *= 1.2
         
 
         self._explode_callbacks: list[Callable[[Bomb, Blast], Any]] = []
@@ -894,7 +894,7 @@ class Bomb(bs.Actor):
             else:
                 tex = factory.regular_tex
             if self.bomb_type == 'normal_modified':
-                fuse_time = 1.5
+                fuse_time = 1.6
             self.node = bs.newnode(
                 'bomb',
                 delegate=self,
