@@ -29,6 +29,8 @@ class BombgeonCharBase(spaz.Spaz):
 
     # basic stats
     health: int = 1000
+    shields: int = 0
+    armor: int = 0
     speed: float = 1.0
 
     # skills to inputs
@@ -86,6 +88,8 @@ class BombgeonCharBase(spaz.Spaz):
         self._character_method_override(character)
 
         self.hitpoints = self.hitpoints_max = self.health
+        self.shieldHP = self.shieldHP_max = self.shields
+        self.armorHP = self.armorHP_max = self.armor
 
         self._skills: dict[_ChrBtn, Optional[CharacterSkill]] = {
             _ChrBtn.PUNCH: None,
@@ -134,7 +138,7 @@ class BombgeonCharBase(spaz.Spaz):
         AKA if we exist, are alive and aren't stunned.
         """
         return (
-            self.exists() and self.is_alive() and not self.node.knockout > 0.0
+            self.exists() and self.is_alive() and not self.node.knockout > 0.0 and not self.frozen
         )
 
     def _handle_skill(self, skill_input: _ChrBtn) -> Any:
@@ -167,6 +171,8 @@ class BombgeonCharBase(spaz.Spaz):
         # clear our skills to prevent any funny business.
         self._skills = {}
         return super().on_expire()
+    
+    def handlemessage(self, msg): return super().handlemessage(msg)
 
 
 class CharacterSkill:
@@ -267,3 +273,5 @@ def apply_bombgeon_roster():
     for entry in get_bombgeon_roster():
         assert entry.appearance is Appearance
         bs.app.classic.spaz_appearances[entry.name] = entry.appearance
+
+    
