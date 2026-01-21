@@ -142,7 +142,11 @@ class BombgeonCharBase(spaz.Spaz):
         AKA if we exist, are alive and aren't stunned.
         """
         return (
-            self.exists() and self.is_alive() and not self.node.knockout > 0.0 and not self.frozen and self.actionable
+            self.exists()
+            and self.is_alive()
+            and not self.node.knockout > 0.0
+            and not self.frozen
+            and self.actionable
         )
 
     def _handle_skill(self, skill_input: _ChrBtn) -> Any:
@@ -164,10 +168,9 @@ class BombgeonCharBase(spaz.Spaz):
                 case _ChrBtn.JUMP:
                     super().on_jump_press()
             return
-        
-        #Anyway show icons
-        
-       
+
+        # Anyway show icons
+
         if skill.can_perform():
             skill.perform(self)
             if skill.show_cooldown:
@@ -175,22 +178,28 @@ class BombgeonCharBase(spaz.Spaz):
                     case _ChrBtn.GRAB:
                         self.node.mini_billboard_1_texture = skill.texture_icon
                         self.node.mini_billboard_1_start_time = bs.time() * 1000
-                        self.node.mini_billboard_1_end_time = (bs.time() * 1000) + (skill.cooldown_time * 1000)
+                        self.node.mini_billboard_1_end_time = (
+                            bs.time() * 1000
+                        ) + (skill.cooldown_time * 1000)
                     case _ChrBtn.BOMB:
                         self.node.mini_billboard_2_texture = skill.texture_icon
                         self.node.mini_billboard_2_start_time = bs.time() * 1000
-                        self.node.mini_billboard_2_end_time = (bs.time() * 1000) + (skill.cooldown_time * 1000)
+                        self.node.mini_billboard_2_end_time = (
+                            bs.time() * 1000
+                        ) + (skill.cooldown_time * 1000)
                     case _ChrBtn.JUMP:
                         self.node.mini_billboard_3_texture = skill.texture_icon
                         self.node.mini_billboard_3_start_time = bs.time() * 1000
-                        self.node.mini_billboard_3_end_time = (bs.time() * 1000) + (skill.cooldown_time * 1000)
+                        self.node.mini_billboard_3_end_time = (
+                            bs.time() * 1000
+                        ) + (skill.cooldown_time * 1000)
                 try:
-                    bs.timer(skill.cooldown_time, bs.Call(super()._flash_billboard, skill.texture_icon))
+                    bs.timer(
+                        skill.cooldown_time,
+                        bs.Call(super()._flash_billboard, skill.texture_icon),
+                    )
                 except bs.NotFoundError:
                     pass
-          
-             
-
 
     def _handle_movement(self) -> None: ...
 
@@ -199,26 +208,15 @@ class BombgeonCharBase(spaz.Spaz):
         # clear our skills to prevent any funny business.
         self._skills = {}
         return super().on_expire()
-    
-    def handlemessage(self, msg):
-        if isinstance(msg, bs.DieMessage):
-            self.handle_death(msg)
-        else:
-            return super().handlemessage(msg)
 
-    def handle_death(self, msg) -> None:
-        wasdead = self._dead
-        self._dead = True
-        self.hitpoints = 0
-        if msg.immediate:
-            if self.node:
-                self.node.delete()
-        elif self.node:
-            self.node.hurt = 1.0
-            if self.play_big_death_sound and not wasdead:
-                SpazFactory.get().single_player_death_sound.play()
-            self.node.dead = True
-            bs.timer(2.0, self.node.delete)
+    def custom_handlemessage(self, msg) -> bool:
+        return False
+
+    def handlemessage(self, msg):
+        if self.custom_handlemessage(msg):
+            return
+        return super().handlemessage(msg)
+
 
 class CharacterSkill:
     """A bombgeon character's skill.
@@ -322,5 +320,3 @@ def apply_bombgeon_roster():
     for entry in get_bombgeon_roster():
         assert entry.appearance is Appearance
         bs.app.classic.spaz_appearances[entry.name] = entry.appearance
-
-    

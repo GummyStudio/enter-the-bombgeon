@@ -19,6 +19,7 @@ from bascenev1lib.actor.bomb import Bomb
 
 class Punch(CharacterSkill):
     """cool lil punch"""
+
     cooldown_time = 0.6
 
     def perform(self, spaz: BombgeonCharBase) -> None:
@@ -26,14 +27,15 @@ class Punch(CharacterSkill):
         spaz.node.punch_pressed = True
         spaz.node.punch_pressed = False
         if not spaz.node.hold_node:
-                bs.timer(
-                    0.1,
-                    bs.WeakCall(
-                        spaz._safe_play_sound,
-                        SpazFactory.get().swish_sound,
-                        0.8,
-                    ),
-                )
+            bs.timer(
+                0.1,
+                bs.WeakCall(
+                    spaz._safe_play_sound,
+                    SpazFactory.get().swish_sound,
+                    0.8,
+                ),
+            )
+
 
 class Jump(CharacterSkill):
     """basic jump"""
@@ -44,6 +46,7 @@ class Jump(CharacterSkill):
         # do a standard jump
         spaz.node.jump_pressed = True
         spaz.node.jump_pressed = False
+
 
 class Bomb2(CharacterSkill):
     """bbombp"""
@@ -57,6 +60,7 @@ class Bomb2(CharacterSkill):
         if not spaz.node.hold_node:
             spaz.drop_bomb()
 
+
 class Grab(CharacterSkill):
     """grab"""
 
@@ -66,10 +70,7 @@ class Grab(CharacterSkill):
         # do a standard jump
         spaz.node.pickup_pressed = True
         spaz.node.pickup_pressed = False
-     
-        
-        
-        
+
 
 class SpazCharacter(BombgeonCharBase):
     """Spaz character."""
@@ -82,24 +83,22 @@ class SpazCharacter(BombgeonCharBase):
     retain_vanilla = False
     speed = 0.9
 
-            
-
     skill_punch = Punch
-    skill_jump =  Jump
-    skill_bomb=  Bomb2
-    skill_grab=Grab
-    
+    skill_jump = Jump
+    skill_bomb = Bomb2
+    skill_grab = Grab
+
     def __init__(self):
         # To define character specific variables, do ``def __init__(self)``
         # without calling anything but your own variables, and the system
         # will handle it accordingly.
         self._punch_power_scale *= 0.8
-        self.bomb_type = 'normal_modified'
-    
+        self.bomb_type = "normal_modified"
+
     def handle_death(self, msg) -> None:
         # custom death logic here
         if not self._dead:
-            print('im so dead rn')
+            print("im so dead rn")
         # don't forget to call the original function afterwards or else
         # you'll remain with a half-dead, half-alive spaz.
         BombgeonCharBase.handle_death(self, msg)

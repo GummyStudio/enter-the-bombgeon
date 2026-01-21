@@ -13,18 +13,16 @@ from .internal import (
 
 from bascenev1lib.actor.spazfactory import SpazFactory
 from bascenev1lib.actor.bomb import Bomb
-from bascenev1lib.actor.spaz import (
-    PunchHitMessage,
-    Spaz,
-    PickupMessage
-)
+from bascenev1lib.actor.spaz import PunchHitMessage, Spaz, PickupMessage
 
 import random
+
 # pylint: disable=super-init-not-called
 
 
 class Punch(CharacterSkill):
     """cool lil punch"""
+
     cooldown_time = 1.2
 
     def perform(self, spaz: BombgeonCharBase) -> None:
@@ -32,14 +30,15 @@ class Punch(CharacterSkill):
         spaz.node.punch_pressed = True
         spaz.node.punch_pressed = False
         if not spaz.node.hold_node:
-                bs.timer(
-                    0.1,
-                    bs.WeakCall(
-                        spaz._safe_play_sound,
-                        SpazFactory.get().swish_sound,
-                        0.8,
-                    ),
-                )
+            bs.timer(
+                0.1,
+                bs.WeakCall(
+                    spaz._safe_play_sound,
+                    SpazFactory.get().swish_sound,
+                    0.8,
+                ),
+            )
+
 
 class Jump(CharacterSkill):
     """basic jump"""
@@ -51,6 +50,7 @@ class Jump(CharacterSkill):
         spaz.node.jump_pressed = True
         spaz.node.jump_pressed = False
 
+
 class UndergroundDive(CharacterSkill):
     """bbombp"""
 
@@ -60,11 +60,9 @@ class UndergroundDive(CharacterSkill):
     def __init__(self):
         super().__init__()
         # Gotta define it here or else problems
-        self.texture_icon = bs.gettexture('shrapnel1Color')
-
+        self.texture_icon = bs.gettexture("shrapnel1Color")
 
     def perform(self, spaz: BombgeonCharBase) -> None:
-        
 
         def getout():
             spaz.actionable = True
@@ -98,27 +96,25 @@ class UndergroundDive(CharacterSkill):
             spaz.node.lower_leg_mesh = None
             spaz.node.toes_mesh = None
             spaz.node.invincible = True
-            spaz.gravelsound = bs.newnode('sound', attrs={
-                'sound': bs.getsound('gravelSkid'),
-                'volume': 0.75
-            })
+            spaz.gravelsound = bs.newnode(
+                "sound",
+                attrs={"sound": bs.getsound("gravelSkid"), "volume": 0.75},
+            )
             spaz.smoke = bs.newnode(
-                'flash',
+                "flash",
                 attrs={
-                    'position': spaz.node.position,
-                    'size': 0.3,
-                    'color': spaz.node.color
-                }
-            ) 
+                    "position": spaz.node.position,
+                    "size": 0.3,
+                    "color": spaz.node.color,
+                },
+            )
             _ = 0.1
             times = 45
             for i in range(times):
-                bs.timer(_*i, tick)
-                        
-            bs.timer(_*times, getout)
+                bs.timer(_ * i, tick)
 
-        
-        
+            bs.timer(_ * times, getout)
+
         def tick():
             if not spaz.is_alive():
                 spaz.gravelsound.delete()
@@ -131,88 +127,129 @@ class UndergroundDive(CharacterSkill):
                 count=int(4.0 + random.random() * 8),
                 scale=1,
                 spread=1.0,
-                chunk_type='rock',
+                chunk_type="rock",
             )
             spaz.armorHP -= 24
-    
+
             for _ in range(50):
                 v = spaz.node.velocity
-                spaz.node.handlemessage('impulse', spaz.node.position[0], spaz.node.position[1], spaz.node.position[2],
-                                            0, 25, 0,
-                                            -15, 0.05, 0, 0,
-                                            0, 20*400, 0)
-               
+                spaz.node.handlemessage(
+                    "impulse",
+                    spaz.node.position[0],
+                    spaz.node.position[1],
+                    spaz.node.position[2],
+                    0,
+                    25,
+                    0,
+                    -15,
+                    0.05,
+                    0,
+                    0,
+                    0,
+                    20 * 400,
+                    0,
+                )
+
             spaz.smoke.position = spaz.node.position
-        
+
         spaz.actionable = False
         spaz.node.jump_pressed = True
         spaz.node.jump_pressed = False
         bs.timer(0.3, getin)
-        
+
 
 class GrabDash(CharacterSkill):
     """grab"""
 
     cooldown_time = 9
     show_cooldown = True
+
     def __init__(self):
         super().__init__()
         # Gotta define it here or else problems
-        self.texture_icon = bs.gettexture('achievementSuperPunch')
+        self.texture_icon = bs.gettexture("achievementSuperPunch")
 
     def perform(self, spaz: BombgeonCharBase) -> None:
-                def grab():
-            
-                    spaz.node.pickup_pressed = True
-                    spaz.node.pickup_pressed = False
-                bs.timer(0.2, grab)
-                xforce = 55
-                yforce = 2
-                for _ in range(50):
-                    v = spaz.node.velocity
-                    spaz.node.handlemessage('impulse', spaz.node.position[0], spaz.node.position[1], spaz.node.position[2],
-                                            0, 25, 0,
-                                            yforce, 0.05, 0, 0,
-                                            0, 20*400, 0)
-                    
-                    spaz.node.handlemessage('impulse', spaz.node.position[0], spaz.node.position[1], spaz.node.position[2],
-                                            0, 25, 0,
-                                            xforce, 0.05, 0, 0,
-                                            v[0]*15*2, 0, v[2]*15*2)
-                def sparkies():
-                            if spaz.node.exists():
-                                bs.emitfx(position=spaz.node.position,
-                                    chunk_type='sweat',
-                                    count=5,
-                                    scale=1,
-                                    spread=0.6)
-                                bs.emitfx(position=spaz.node.position,
-                                    chunk_type='spark',
-                                    count=5,
-                                    scale=1.0,
-                                    spread=0.1)
-                bs.timer(0.01,bs.Call(sparkies))
-                bs.timer(0.1,bs.Call(sparkies))
-                bs.timer(0.2,bs.Call(sparkies))
-                random.choice(SpazFactory.get().foot_impact_sounds).play(position=spaz.node.position)
-                
-                explode_sounds = (
-                    bs.getsound('explosion01'),
-                    bs.getsound('explosion02'),
-                    bs.getsound('explosion03'),
-                    bs.getsound('explosion04'),
-                    bs.getsound('explosion05'),
-                )        
-                debris_fall_sound = bs.getsound('debrisFall')
-            
-    
-                random.choice(explode_sounds).play(position=spaz.node.position)
-                debris_fall_sound.play(position=spaz.node.position)
-        
-     
-        
-        
-        
+        def grab():
+
+            spaz.node.pickup_pressed = True
+            spaz.node.pickup_pressed = False
+
+        bs.timer(0.2, grab)
+        xforce = 55
+        yforce = 2
+        for _ in range(50):
+            v = spaz.node.velocity
+            spaz.node.handlemessage(
+                "impulse",
+                spaz.node.position[0],
+                spaz.node.position[1],
+                spaz.node.position[2],
+                0,
+                25,
+                0,
+                yforce,
+                0.05,
+                0,
+                0,
+                0,
+                20 * 400,
+                0,
+            )
+
+            spaz.node.handlemessage(
+                "impulse",
+                spaz.node.position[0],
+                spaz.node.position[1],
+                spaz.node.position[2],
+                0,
+                25,
+                0,
+                xforce,
+                0.05,
+                0,
+                0,
+                v[0] * 15 * 2,
+                0,
+                v[2] * 15 * 2,
+            )
+
+        def sparkies():
+            if spaz.node.exists():
+                bs.emitfx(
+                    position=spaz.node.position,
+                    chunk_type="sweat",
+                    count=5,
+                    scale=1,
+                    spread=0.6,
+                )
+                bs.emitfx(
+                    position=spaz.node.position,
+                    chunk_type="spark",
+                    count=5,
+                    scale=1.0,
+                    spread=0.1,
+                )
+
+        bs.timer(0.01, bs.Call(sparkies))
+        bs.timer(0.1, bs.Call(sparkies))
+        bs.timer(0.2, bs.Call(sparkies))
+        random.choice(SpazFactory.get().foot_impact_sounds).play(
+            position=spaz.node.position
+        )
+
+        explode_sounds = (
+            bs.getsound("explosion01"),
+            bs.getsound("explosion02"),
+            bs.getsound("explosion03"),
+            bs.getsound("explosion04"),
+            bs.getsound("explosion05"),
+        )
+        debris_fall_sound = bs.getsound("debrisFall")
+
+        random.choice(explode_sounds).play(position=spaz.node.position)
+        debris_fall_sound.play(position=spaz.node.position)
+
 
 class B9000Character(BombgeonCharBase):
     """B9000 character."""
@@ -225,21 +262,19 @@ class B9000Character(BombgeonCharBase):
     retain_vanilla = False
     speed = 0.85
 
-            
-
     skill_punch = Punch
-    skill_jump =  Jump
-    skill_bomb=  UndergroundDive
-    skill_grab=  GrabDash
-    
+    skill_jump = Jump
+    skill_bomb = UndergroundDive
+    skill_grab = GrabDash
+
     def __init__(self):
         # To define character specific variables, do ``def __init__(self)``
         # without calling anything but your own variables, and the system
         # will handle it accordingly.
         self._punch_power_scale *= 0.85
-        #self.bomb_type = 'normal_modified'
+        # self.bomb_type = 'normal_modified'
 
-    def handlemessage(self, msg):
+    def custom_handlemessage(self, msg) -> bool:
         if isinstance(msg, PunchHitMessage):
 
             node = bs.getcollision().opposingnode
@@ -248,10 +283,11 @@ class B9000Character(BombgeonCharBase):
             if node.getdelegate(Spaz):
                 self.armorHP -= 245
 
-            return BombgeonCharBase.handlemessage(self, msg)
+            return False
+
         elif isinstance(msg, PickupMessage):
             if not self.node:
-                return None
+                return False
 
             try:
                 collision = bs.getcollision()
@@ -270,8 +306,7 @@ class B9000Character(BombgeonCharBase):
             other_dude = opposingnode.getdelegate(Spaz)
             assert isinstance(other_dude, Spaz)
 
-           
-            if opposingnode.getnodetype() == 'spaz' and other_dude:
+            if opposingnode.getnodetype() == "spaz" and other_dude:
                 # grab them and do som damage
                 self.actionable = False
                 self.node.hold_body = opposingbody
@@ -280,54 +315,61 @@ class B9000Character(BombgeonCharBase):
 
                 def hurt():
                     self.armorHP -= 140
-                    other_dude.handlemessage(bs.HitMessage(self.node, flat_damage=70))
-
-
+                    other_dude.handlemessage(
+                        bs.HitMessage(self.node, flat_damage=70)
+                    )
 
                 def actionable():
                     self.node.hold_node = None
                     self.actionable = True
                     self.node.invincible = False
+
                 _ = 0.2
                 times = 12
                 for i in range(times):
-                    bs.timer(_*i, hurt)
-                     
-                bs.timer(_*times, actionable)
+                    bs.timer(_ * i, hurt)
 
-               
+                bs.timer(_ * times, actionable)
+
                 return True
-            
+
+            return False
+
+        elif isinstance(msg, bs.DieMessage):
+            self.handle_death(msg)
+            return False
         else:
-            return BombgeonCharBase.handlemessage(self, msg)
-    
+            return False
+
     def handle_death(self, msg) -> None:
-        
+
         if not self._dead:
-            self._safe_play_sound(bs.getsound('b900Die1'), 2)
-            self._safe_play_sound(bs.getsound('b900Die2'), 2)
+            self._safe_play_sound(bs.getsound("b900Die1"), 2)
+            self._safe_play_sound(bs.getsound("b900Die2"), 2)
             SpazFactory.get().splatter_sound.play(
-                    1.0,
-                    position=self.node.position,
+                1.0,
+                position=self.node.position,
             )
-            bs.emitfx(position=self.node.position,
-                                    chunk_type='sweat',
-                                    count=15,
-                                    scale=1.2,
-                                    spread=1.6)
-            bs.emitfx(position=self.node.position,
-                                    chunk_type='spark',
-                                    count=15,
-                                    scale=1.0,
-                                    spread=0.1)
+            bs.emitfx(
+                position=self.node.position,
+                chunk_type="sweat",
+                count=15,
+                scale=1.2,
+                spread=1.6,
+            )
+            bs.emitfx(
+                position=self.node.position,
+                chunk_type="spark",
+                count=15,
+                scale=1.0,
+                spread=0.1,
+            )
             self.node.shattered = 2
             Blast(
-                    self.node.position,
-                    (0,0,0),
-                    0.5,
+                self.node.position,
+                (0, 0, 0),
+                0.5,
             )
-        BombgeonCharBase.handle_death(self, msg)
-        
 
 
 # Registering character for usage
