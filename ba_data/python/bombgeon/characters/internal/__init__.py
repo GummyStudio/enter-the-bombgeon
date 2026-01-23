@@ -8,7 +8,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from inspect import isfunction
 from types import MethodType
-from typing import Any, Callable, Optional, Sequence, Type, Union, override
+from typing import Any, Callable, Optional, Sequence, Type, TypeVar, Union, override
 
 import bascenev1 as bs
 from bascenev1lib.actor import spaz
@@ -24,6 +24,7 @@ class _ChrBtn(Enum):
     BOMB = "bomb"
     JUMP = "jump"
 
+T = TypeVar('T')
 
 class BombgeonCharBase(spaz.Spaz):
     """Bombgeon character with unique qualities."""
@@ -206,6 +207,14 @@ class BombgeonCharBase(spaz.Spaz):
                     )
                 except bs.NotFoundError:
                     pass
+
+    def get_skills_from_type(self, skill_type: Type[T]) -> list[T]:
+        """Return a list with the character skills of the matching type provided."""
+        l = []
+        for _skill in self._skills.values():
+            if isinstance(_skill, skill_type):
+                l.append(_skill)
+        return l
 
     def _handle_movement(self) -> None: ...
 

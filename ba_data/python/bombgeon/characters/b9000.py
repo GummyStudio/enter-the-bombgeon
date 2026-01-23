@@ -1,5 +1,7 @@
 """Spaz character."""
 
+from __future__ import annotations
+
 from typing import Any
 import bascenev1 as bs
 
@@ -29,6 +31,9 @@ class Punch(CharacterSkill):
         spaz._punched_nodes = set()
         spaz.node.punch_pressed = True
         spaz.node.punch_pressed = False
+        # cancel "GrabDash"'s grab
+        self.cancel_grab(spaz)
+        # drop stuff
         if not spaz.node.hold_node:
             bs.timer(
                 0.1,
@@ -38,7 +43,14 @@ class Punch(CharacterSkill):
                     0.8,
                 ),
             )
-        
+
+    def cancel_grab(self, spaz: BombgeonCharBase) -> None:
+        """Get all "GrabDash" skills from this character
+        and set their "has_punched" variable as True.
+        """
+        s = spaz.get_skills_from_type(GrabDash)
+        for a in s:
+            a.has_punched = True
 
 
 class Jump(CharacterSkill):
@@ -172,51 +184,12 @@ class GrabDash(CharacterSkill):
         super().__init__()
         # Gotta define it here or else problems
         self.texture_icon = bs.gettexture("achievementSuperPunch")
+        # handled by "Punch" class
+        self.has_punched = False
 
     def perform(self, spaz: BombgeonCharBase) -> None:
-        def grab():
-
-            spaz.node.pickup_pressed = True
-            spaz.node.pickup_pressed = False
-
-        bs.timer(0.2, grab)
-        xforce = 55
-        yforce = 2
-        for _ in range(50):
-            v = spaz.node.velocity
-            spaz.node.handlemessage(
-                "impulse",
-                spaz.node.position[0],
-                spaz.node.position[1],
-                spaz.node.position[2],
-                0,
-                25,
-                0,
-                yforce,
-                0.05,
-                0,
-                0,
-                0,
-                20 * 400,
-                0,
-            )
-
-            spaz.node.handlemessage(
-                "impulse",
-                spaz.node.position[0],
-                spaz.node.position[1],
-                spaz.node.position[2],
-                0,
-                25,
-                0,
-                xforce,
-                0.05,
-                0,
-                0,
-                v[0] * 15 * 2,
-                0,
-                v[2] * 15 * 2,
-            )
+        # reset punch state
+        self.has_punched = False
 
         def sparkies():
             if spaz.node.exists():
@@ -235,13 +208,60 @@ class GrabDash(CharacterSkill):
                     spread=0.1,
                 )
 
+        def grab():
+            # actually, don't! (if we punched or are dead)
+            if not spaz.is_alive() or self.has_punched:
+                return
+            spaz.node.pickup_pressed = True
+            spaz.node.pickup_pressed = False
+
+        def dash():
+            xforce = 55
+            yforce = 2
+            spaz.node.handlemessage(
+                "impulse",
+                spaz.node.position[0],
+                spaz.node.position[1],
+                spaz.node.position[2],
+                0,
+                25,
+                0,
+                yforce,
+                0.05,
+                0,
+                0,
+                0,
+                20 * 400,
+                0,
+            )
+            v = spaz.node.velocity
+            for _ in range(50):
+                spaz.node.handlemessage(
+                    "impulse",
+                    spaz.node.position[0],
+                    spaz.node.position[1],
+                    spaz.node.position[2],
+                    0,
+                    25,
+                    0,
+                    xforce,
+                    0.05,
+                    0,
+                    0,
+                    v[0] * 15 * 2,
+                    0,
+                    v[2] * 15 * 2,
+                )
+
+        dash()
+        bs.timer(0.2, grab)
+
         bs.timer(0.01, bs.Call(sparkies))
         bs.timer(0.1, bs.Call(sparkies))
         bs.timer(0.2, bs.Call(sparkies))
         random.choice(SpazFactory.get().foot_impact_sounds).play(
             position=spaz.node.position
         )
-
         explode_sounds = (
             bs.getsound("explosion01"),
             bs.getsound("explosion02"),
@@ -253,7 +273,6 @@ class GrabDash(CharacterSkill):
 
         random.choice(explode_sounds).play(position=spaz.node.position)
         debris_fall_sound.play(position=spaz.node.position)
-
 
 class B9000Character(BombgeonCharBase):
     """B9000 character."""
@@ -278,13 +297,18 @@ class B9000Character(BombgeonCharBase):
         self._punch_power_scale *= 0.85
         # self.bomb_type = 'normal_modified'
 
+        self.grab_damage = 120
+        self.grab_recovery = 70
+        self.grab_repeats = 5
+        self.grab_delay = 0.33
+
         self.armor_drain_rate = 80
 
         self._armor_drain_timer = bs.Timer(1.0, bs.WeakCall(self._armor_drain_tick), repeat=True)
 
 
     def _armor_drain_tick(self):
-                                # eh, dont do it if we stunned
+        # eh, dont do it if we stunned
         if not self.is_alive() or self.stunned:
             return
         if self.armorHP < 500:
@@ -326,35 +350,16 @@ class B9000Character(BombgeonCharBase):
             other_dude = opposingnode.getdelegate(Spaz)
             assert isinstance(other_dude, Spaz)
 
+
             if opposingnode.getnodetype() == "spaz" and other_dude:
-                # grab them and do som damage
+                # grab them
                 self.actionable = False
                 self.node.hold_body = opposingbody
                 self.node.hold_node = opposingnode
                 self.node.invincible = True
                 other_dude.stunned = True
-
-                def hurt():
-                    self.armorHP += 34
-                   
-                    other_dude.handlemessage(
-                        bs.HitMessage(self.node, flat_damage=45)
-                    )
-
-                def actionable():
-                    other_dude.stunned = False
-                    self.node.hold_node = None
-                    self.actionable = True
-                    self.node.invincible = False
-
-                _ = 0.2
-                times = 12
-                for i in range(times):
-                    bs.timer(_ * i, hurt)
-
-                bs.timer(_ * times, actionable)
-
-                return True
+                # steal their hp!
+                self.drain_hp(other_dude)
 
             return False
 
@@ -393,6 +398,45 @@ class B9000Character(BombgeonCharBase):
                 (0, 0, 0),
                 0.5,
             )
+
+    def drain_hp(self, target_spaz: Spaz) -> None:
+        """Drain the health of whoever we are grabbing."""
+        def actionable():
+            target_spaz.stunned = False
+            self.node.hold_node = None
+            self.actionable = True
+            self.node.invincible = False
+
+        def hurt():
+            if have_we_punched():
+                # dont grab if we punched earlier
+                actionable()
+                return
+
+            self.armorHP += self.grab_recovery
+           
+            target_spaz.handlemessage(
+                bs.HitMessage(self.node, flat_damage=self.grab_damage)
+            )
+
+        def have_we_punched() -> bool:
+            # this is very janky
+            grabs = self.get_skills_from_type(GrabDash)
+            for skill in grabs:
+                if skill.has_punched:
+                    return True
+            return False
+
+        if have_we_punched():
+            # dont grab if we punched earlier
+            actionable()
+            return
+        time = self.grab_delay
+        itr = self.grab_repeats
+        for i in range(itr):
+            bs.timer(time * i, hurt)
+
+        bs.timer(time * itr, actionable)
 
 
 # Registering character for usage
