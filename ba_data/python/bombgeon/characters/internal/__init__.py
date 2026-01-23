@@ -147,6 +147,7 @@ class BombgeonCharBase(spaz.Spaz):
             and not self.node.knockout > 0.0
             and not self.frozen
             and self.actionable
+            and not self.stunned
         )
 
     def _handle_skill(self, skill_input: _ChrBtn) -> Any:
