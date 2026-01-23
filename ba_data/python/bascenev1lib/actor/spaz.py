@@ -358,6 +358,7 @@ class Spaz(bs.Actor):
         self.shieldHP = 0
         self.shieldHP_max = 0
 
+        self.stunned = False
         self.last_damage_time = bs.time()
         self.shield_regen_rate = 50
         self.shield_regen_delay = 2.5
@@ -603,7 +604,7 @@ class Spaz(bs.Actor):
         Called to 'press jump' on this spaz;
         used by player or AI connections.
         """
-        if not self.node:
+        if not self.node or self.stunned:
             return
         t_ms = int(bs.time() * 1000.0)
         assert isinstance(t_ms, int)
@@ -626,7 +627,7 @@ class Spaz(bs.Actor):
         Called to 'press pick-up' on this spaz;
         used by player or AI connections.
         """
-        if not self.node:
+        if not self.node or self.stunned:
             return
         t_ms = int(bs.time() * 1000.0)
         assert isinstance(t_ms, int)
@@ -668,7 +669,7 @@ class Spaz(bs.Actor):
         Called to 'press punch' on this spaz;
         used for player or AI connections.
         """
-        if not self.node or self.frozen or self.node.knockout > 0.0:
+        if not self.node or self.frozen or self.node.knockout > 0.0 or self.stunned:
             return
         t_ms = int(bs.time() * 1000.0)
         assert isinstance(t_ms, int)
@@ -713,6 +714,7 @@ class Spaz(bs.Actor):
             or self._dead
             or self.frozen
             or self.node.knockout > 0.0
+            or self.stunned
         ):
             return
         t_ms = int(bs.time() * 1000.0)
@@ -792,7 +794,10 @@ class Spaz(bs.Actor):
         WARNING: deprecated; use on_move instead.
         """
         if not self.node:
+            
             return
+        if self.stunned:
+            self.node.move_up_down = 0.0
         self.node.move_up_down = value
 
     def on_move_left_right(self, value: float) -> None:
@@ -802,8 +807,11 @@ class Spaz(bs.Actor):
         value will be between -32768 to 32767
         WARNING: deprecated; use on_move instead.
         """
+
         if not self.node:
             return
+        if self.stunned:
+            self.node.move_left_right = 0.0
         self.node.move_left_right = value
 
     def on_punched(self, damage: int) -> None:
