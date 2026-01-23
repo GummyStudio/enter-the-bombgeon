@@ -359,6 +359,7 @@ class Spaz(bs.Actor):
         self.shieldHP_max = 0
 
         self.stunned = False
+        self.speed = 1.0
         self.last_damage_time = bs.time()
         self.shield_regen_rate = 50
         self.shield_regen_delay = 2.5
@@ -374,8 +375,7 @@ class Spaz(bs.Actor):
         self._update_health_text()
 
     def _update_health_text(self) -> None:
-        if not self.is_alive():
-            return
+       
         try:
 
             x = self.HEALTH_UI_BASE_X_OFFSET
@@ -402,6 +402,8 @@ class Spaz(bs.Actor):
                 x += shield_width + self.HEALTH_UI_SPACING_SMALL
             else:
                 self._shield_text.text = ''
+                self.shieldHP = 0
+                
 
             if self.armorHP > 0:
                 armor_text = f"{int(self.armorHP/10)}"
@@ -415,6 +417,7 @@ class Spaz(bs.Actor):
                 x += armor_width + self.HEALTH_UI_SPACING_SMALL
             else:
                 self._armor_text.text = ''
+                self.armorHP = 0
 
             try:
                 if self.shield_hitpoints > 0:
@@ -798,7 +801,7 @@ class Spaz(bs.Actor):
             return
         if self.stunned:
             self.node.move_up_down = 0.0
-        self.node.move_up_down = value
+        self.node.move_up_down = value * self.speed
 
     def on_move_left_right(self, value: float) -> None:
         """
@@ -812,7 +815,7 @@ class Spaz(bs.Actor):
             return
         if self.stunned:
             self.node.move_left_right = 0.0
-        self.node.move_left_right = value
+        self.node.move_left_right = value * self.speed
 
     def on_punched(self, damage: int) -> None:
         """Called when this spaz gets punched."""
