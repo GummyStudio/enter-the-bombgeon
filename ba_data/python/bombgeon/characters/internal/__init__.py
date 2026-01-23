@@ -8,7 +8,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from inspect import isfunction
 from types import MethodType
-from typing import Any, Optional, Sequence, Type, Union, override
+from typing import Any, Callable, Optional, Sequence, Type, Union, override
 
 import bascenev1 as bs
 from bascenev1lib.actor import spaz
@@ -51,15 +51,20 @@ class BombgeonCharBase(spaz.Spaz):
         for char in get_bombgeon_roster():
             if not character == char.name:
                 continue
+            has_init: bool = False
             for name, method in char.character.__dict__.items():
                 if name.startswith("__"):
                     if name == "__init__":
-                        method(self)
+                        has_init = True
                     continue
                 if isfunction(method):
                     setattr(self, name, MethodType(method, self))
                 else:
                     setattr(self, name, method)
+            if has_init:
+                initmethod = char.character.__dict__.get("__init__")
+                assert isinstance(initmethod, Callable)
+                initmethod(self)
             return
         raise NameError(
             f'no bombgeon charbase matches for character "{character}"'
