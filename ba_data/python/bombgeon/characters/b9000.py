@@ -280,7 +280,7 @@ class B9000Character(BombgeonCharBase):
             node = bs.getcollision().opposingnode
 
             # ow
-            if node.getdelegate(Spaz):
+            if node.getdelegate(Spaz) and (node not in self._punched_nodes):
                 self.armorHP -= 245
 
             return False
@@ -312,6 +312,7 @@ class B9000Character(BombgeonCharBase):
                 self.node.hold_body = opposingbody
                 self.node.hold_node = opposingnode
                 self.node.invincible = True
+                other_dude.stunned = True
 
                 def hurt():
                     self.armorHP -= 140
@@ -320,6 +321,7 @@ class B9000Character(BombgeonCharBase):
                     )
 
                 def actionable():
+                    other_dude.stunned = False
                     self.node.hold_node = None
                     self.actionable = True
                     self.node.invincible = False
