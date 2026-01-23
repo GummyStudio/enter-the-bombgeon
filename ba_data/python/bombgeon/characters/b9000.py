@@ -38,6 +38,7 @@ class Punch(CharacterSkill):
                     0.8,
                 ),
             )
+        
 
 
 class Jump(CharacterSkill):
@@ -129,7 +130,10 @@ class UndergroundDive(CharacterSkill):
                 spread=1.0,
                 chunk_type="rock",
             )
-            spaz.armorHP -= 24
+            spaz.armor_drain_rate *= 1.1
+            def undrain():
+                spaz.armor_drain_rate /= 1.1
+            bs.timer(0.5, undrain)
 
             for _ in range(50):
                 v = spaz.node.velocity
@@ -274,6 +278,19 @@ class B9000Character(BombgeonCharBase):
         self._punch_power_scale *= 0.85
         # self.bomb_type = 'normal_modified'
 
+        self.armor_drain_rate = 80
+
+        self._armor_drain_timer = bs.Timer(1.0, bs.WeakCall(self._armor_drain_tick), repeat=True)
+
+
+    def _armor_drain_tick(self):
+                                # eh, dont do it if we stunned
+        if not self.is_alive() or self.stunned:
+            return
+        if self.armorHP < 500:
+            return
+        self.armorHP = int(max(0, self.armorHP - self.armor_drain_rate))
+
     def custom_handlemessage(self, msg) -> bool:
         if isinstance(msg, PunchHitMessage):
 
@@ -281,7 +298,10 @@ class B9000Character(BombgeonCharBase):
 
             # ow
             if node.getdelegate(Spaz) and (node not in self._punched_nodes):
-                self.armorHP -= 245
+                self.armor_drain_rate *= 1.8
+                def undrain():
+                    self.armor_drain_rate /= 1.8
+                bs.timer(1.0, undrain)
 
             return False
 
@@ -315,9 +335,10 @@ class B9000Character(BombgeonCharBase):
                 other_dude.stunned = True
 
                 def hurt():
-                    self.armorHP -= 140
+                    self.armorHP += 34
+                   
                     other_dude.handlemessage(
-                        bs.HitMessage(self.node, flat_damage=70)
+                        bs.HitMessage(self.node, flat_damage=45)
                     )
 
                 def actionable():
