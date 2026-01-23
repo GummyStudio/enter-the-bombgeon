@@ -418,11 +418,13 @@ class Chooser:
             # character to others they own, but profile characters
             # should work (and we validate profiles on the master server
             # so no exploit opportunities)
-            if (
-                character not in self._character_names
-                and character in babase.app.classic.spaz_appearances
-            ):
-                self._character_names.append(character)
+            # if (
+            #     character not in self._character_names
+            #     and character in babase.app.classic.spaz_appearances
+            # ):
+            #     self._character_names.append(character)
+            
+            # screw that, efro! -temp
             self._character_index = self._character_names.index(character)
             self._color, self._highlight = get_player_profile_colors(
                 self._profilename, profiles=self._profiles
@@ -444,12 +446,14 @@ class Chooser:
         is_test_input = input_device.is_test_input
 
         # Pull this player's list of unlocked characters.
-        if is_remote:
-            # TODO: Pull this from the remote player.
-            # (but make sure to filter it to the ones we've got).
-            self._character_names = ['Spaz']
-        else:
-            self._character_names = self.lobby.character_names_local_unlocked
+        # if is_remote:
+        #     # TODO: Pull this from the remote player.
+        #     # (but make sure to filter it to the ones we've got).
+        #     self._character_names = ['Spaz']
+        # else:
+        #     self._character_names = self.lobby.character_names_local_unlocked
+        assert babase.app.classic
+        self._character_names.extend(babase.app.classic.spaz_appearances)
 
         # If we're a local player, pull our local profiles from the config.
         # Otherwise ask the remote-input-device for its profile list.
