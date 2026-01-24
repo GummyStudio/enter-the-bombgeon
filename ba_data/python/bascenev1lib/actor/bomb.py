@@ -681,6 +681,9 @@ class Blast(bs.Actor):
                 mag *= 2.5
             elif self.blast_type == 'tnt':
                 mag *= 2.0
+            elif self.blast_type == 'healing_bomb':
+                self.hit_subtype = 'healing_bomb'
+                mag *= 0.35
           
             node.handlemessage(
                 bs.HitMessage(
@@ -742,6 +745,7 @@ class Bomb(bs.Actor):
             'sticky',
             'tnt',
             'normal_modified',
+            'healing_bomb',
         ):
             raise ValueError('invalid bomb type: ' + bomb_type)
         self.bomb_type = bomb_type
@@ -765,6 +769,8 @@ class Bomb(bs.Actor):
             self.blast_radius *= 1.45
         elif self.bomb_type == 'normal_modified':
             self.blast_radius *= 1.2
+        elif self.bomb_type == 'healing_bomb':
+            self.blast_radius *= 0.85
         
 
         self._explode_callbacks: list[Callable[[Bomb, Blast], Any]] = []
@@ -891,6 +897,8 @@ class Bomb(bs.Actor):
                 tex = factory.ice_tex
             elif self.bomb_type == 'sticky':
                 tex = factory.sticky_tex
+            elif self.bomb_type == 'healing_bomb':
+                tex = bs.gettexture('powerupHealth')
             else:
                 tex = factory.regular_tex
             if self.bomb_type == 'normal_modified':
