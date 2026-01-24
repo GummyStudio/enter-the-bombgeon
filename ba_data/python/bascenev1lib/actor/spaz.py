@@ -1208,7 +1208,7 @@ class Spaz(bs.Actor):
 
                     # Oh, we got healed
                     if msg.hit_subtype == 'healing_bomb':
-                        self.healing(4.5, False, 1.2)
+                        self.healing(6.5, False, 1.2)
                     return None
 
             if self.node.invincible:
