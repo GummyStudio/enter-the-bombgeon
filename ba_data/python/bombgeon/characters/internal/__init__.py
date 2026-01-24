@@ -181,31 +181,32 @@ class BombgeonCharBase(spaz.Spaz):
         if skill.can_perform():
             skill.perform(self)
             if skill.show_cooldown:
-                match skill_input:
-                    case _ChrBtn.GRAB:
-                        self.node.mini_billboard_1_texture = skill.texture_icon
-                        self.node.mini_billboard_1_start_time = bs.time() * 1000
-                        self.node.mini_billboard_1_end_time = (
-                            bs.time() * 1000
-                        ) + (skill.cooldown_time * 1000)
-                    case _ChrBtn.BOMB:
-                        self.node.mini_billboard_2_texture = skill.texture_icon
-                        self.node.mini_billboard_2_start_time = bs.time() * 1000
-                        self.node.mini_billboard_2_end_time = (
-                            bs.time() * 1000
-                        ) + (skill.cooldown_time * 1000)
-                    case _ChrBtn.JUMP:
-                        self.node.mini_billboard_3_texture = skill.texture_icon
-                        self.node.mini_billboard_3_start_time = bs.time() * 1000
-                        self.node.mini_billboard_3_end_time = (
-                            bs.time() * 1000
-                        ) + (skill.cooldown_time * 1000)
                 try:
+                    match skill_input:
+                        case _ChrBtn.GRAB:
+                            self.node.mini_billboard_1_texture = skill.texture_icon
+                            self.node.mini_billboard_1_start_time = bs.time() * 1000
+                            self.node.mini_billboard_1_end_time = (
+                                bs.time() * 1000
+                            ) + (skill.cooldown_time * 1000)
+                        case _ChrBtn.BOMB:
+                            self.node.mini_billboard_2_texture = skill.texture_icon
+                            self.node.mini_billboard_2_start_time = bs.time() * 1000
+                            self.node.mini_billboard_2_end_time = (
+                                bs.time() * 1000
+                            ) + (skill.cooldown_time * 1000)
+                        case _ChrBtn.JUMP:
+                            self.node.mini_billboard_3_texture = skill.texture_icon
+                            self.node.mini_billboard_3_start_time = bs.time() * 1000
+                            self.node.mini_billboard_3_end_time = (
+                                bs.time() * 1000
+                            ) + (skill.cooldown_time * 1000)
+                    
                     bs.timer(
                         skill.cooldown_time,
                         bs.Call(super()._flash_billboard, skill.texture_icon),
                     )
-                except bs.NotFoundError:
+                except bs.NodeNotFoundError:
                     pass
 
     def get_skills_from_type(self, skill_type: Type[T]) -> list[T]:
