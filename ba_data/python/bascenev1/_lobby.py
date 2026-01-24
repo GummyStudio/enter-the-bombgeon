@@ -14,6 +14,7 @@ import babase
 import _bascenev1
 from bascenev1._profile import get_player_profile_colors
 from bascenev1._gameutils import animate, animate_array
+from bombgeon.characters.internal import get_bombgeon_roster
 
 if TYPE_CHECKING:
     from typing import Any, Sequence
@@ -425,6 +426,11 @@ class Chooser:
             #     self._character_names.append(character)
             
             # screw that, efro! -temp
+            if (
+                character not in [c.name for c in get_bombgeon_roster()]
+            ):
+                character = "Spaz"
+            
             self._character_index = self._character_names.index(character)
             self._color, self._highlight = get_player_profile_colors(
                 self._profilename, profiles=self._profiles
@@ -453,7 +459,8 @@ class Chooser:
         # else:
         #     self._character_names = self.lobby.character_names_local_unlocked
         assert babase.app.classic
-        self._character_names.extend(babase.app.classic.spaz_appearances)
+        for char in get_bombgeon_roster():
+            self._character_names.append(char.name)
 
         # If we're a local player, pull our local profiles from the config.
         # Otherwise ask the remote-input-device for its profile list.

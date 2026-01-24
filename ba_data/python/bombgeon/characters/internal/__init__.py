@@ -331,7 +331,7 @@ def get_bombgeon_roster() -> list[BombgeonCharacterEntry]:
 def apply_bombgeon_roster():
     """Apply our bombgeon roster to the character roster."""
     assert bs.app.classic
-    bs.app.classic.spaz_appearances = {}
+    # bs.app.classic.spaz_appearances = {}
 
     for entry in get_bombgeon_roster():
         assert entry.appearance is Appearance
