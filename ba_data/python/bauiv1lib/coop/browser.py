@@ -719,7 +719,7 @@ class CoopBrowserWindow(bui.Window):
         if self._subcontainer is not None:
             self._subcontainer.delete()
 
-        tourney_row_height = 200
+        tourney_row_height = 0
         self._subcontainerheight = (
             620 + self._tournament_button_count * tourney_row_height
         )
@@ -790,115 +790,10 @@ class CoopBrowserWindow(bui.Window):
 
         self._tournament_buttons: list[TournamentButton] = []
 
-        v -= 53
-        # FIXME shouldn't use hard-coded strings here.
-        txt = bui.Lstr(
-            resource='tournamentsText', fallback_resource='tournamentText'
-        ).evaluate()
-        t_width = bui.get_string_width(txt, suppress_warning=True)
-        bui.textwidget(
-            parent=w_parent,
-            position=(h_base + 27, v + 30),
-            size=(0, 0),
-            text=txt,
-            h_align='left',
-            v_align='center',
-            color=bui.app.ui_v1.title_color,
-            scale=1.1,
-        )
-        self._tournament_info_button = bui.buttonwidget(
-            parent=w_parent,
-            label='?',
-            size=(20, 20),
-            text_scale=0.6,
-            position=(h_base + 27 + t_width * 1.1 + 15, v + 18),
-            button_type='square',
-            color=(0.6, 0.5, 0.65),
-            textcolor=(0.7, 0.6, 0.75),
-            autoselect=True,
-            up_widget=self._campaign_h_scroll,
-            on_activate_call=self._on_tournament_info_press,
-        )
-        bui.widget(
-            edit=self._tournament_info_button,
-            left_widget=self._tournament_info_button,
-            right_widget=self._tournament_info_button,
-        )
-
-        # Say 'unavailable' if there are zero tournaments, and if we're not
-        # signed in add that as well (that's probably why we see
-        # no tournaments).
-        if self._tournament_button_count == 0:
-            unavailable_text = bui.Lstr(resource='unavailableText')
-            if plus.get_v1_account_state() != 'signed_in':
-                unavailable_text = bui.Lstr(
-                    value='${A} (${B})',
-                    subs=[
-                        ('${A}', unavailable_text),
-                        ('${B}', bui.Lstr(resource='notSignedInText')),
-                    ],
-                )
-            bui.textwidget(
-                parent=w_parent,
-                position=(h_base + 47, v),
-                size=(0, 0),
-                text=unavailable_text,
-                h_align='left',
-                v_align='center',
-                color=bui.app.ui_v1.title_color,
-                scale=0.9,
-            )
-            v -= 40
-        v -= 198
-
-        tournament_h_scroll = None
-        if self._tournament_button_count > 0:
-            for i in range(self._tournament_button_count):
-                tournament_h_scroll = h_scroll = bui.hscrollwidget(
-                    parent=w_parent,
-                    size=(self._scroll_width - 10, 205),
-                    position=(-5, v),
-                    highlight=False,
-                    border_opacity=0.0,
-                    color=(0.45, 0.4, 0.5),
-                    on_select_call=bui.Call(
-                        self._on_row_selected, 'tournament' + str(i + 1)
-                    ),
-                )
-                bui.widget(
-                    edit=h_scroll,
-                    show_buffer_top=row_v_show_buffer,
-                    show_buffer_bottom=row_v_show_buffer,
-                    autoselect=True,
-                )
-                if self._selected_row == 'tournament' + str(i + 1):
-                    bui.containerwidget(
-                        edit=w_parent,
-                        selected_child=h_scroll,
-                        visible_child=h_scroll,
-                    )
-                bui.containerwidget(edit=h_scroll, claims_left_right=True)
-                sc2 = bui.containerwidget(
-                    parent=h_scroll,
-                    size=(self._scroll_width - 24, 200),
-                    background=False,
-                )
-                h = 0
-                v2 = -2
-                is_last_sel = True
-                self._tournament_buttons.append(
-                    TournamentButton(
-                        sc2,
-                        h,
-                        v2,
-                        is_last_sel,
-                        on_pressed=bui.WeakCall(self.run_tournament),
-                    )
-                )
-                v -= 200
+        v -= 255
+        
 
         # Custom Games. (called 'Practice' in UI these days).
-        v -= 50
         bui.textwidget(
             parent=w_parent,
             position=(h_base + 27, v + 30 + 198),
@@ -914,13 +809,8 @@ class CoopBrowserWindow(bui.Window):
         )
 
         items = [
-            'Challenges:Infinite Onslaught',
-            'Challenges:Infinite Runaround',
-            'Challenges:Ninja Fight',
-            'Challenges:Pro Ninja Fight',
-            'Challenges:Meteor Shower',
-            'Challenges:Target Practice B',
-            'Challenges:Target Practice',
+            'Challenges:newBombgeonEndless',
+            'Challenges:newBombgeonCoop',
         ]
 
         # Show easter-egg-hunt either if its easter or we own it.
