@@ -114,6 +114,7 @@ def init_campaigns() -> None:
     from bascenev1lib.game.meteorshower import MeteorShowerGame
     from bascenev1lib.game.easteregghunt import EasterEggHuntGame
     from bascenev1lib.game.ninjafight import NinjaFightGame
+    from bascenev1lib.game.coop import CoopGame
 
     # TODO: Campaigns should be load-on-demand; not all imported at launch
     #  like this.
@@ -258,152 +259,20 @@ def init_campaigns() -> None:
             sequential=False,
             levels=[
                 Level(
-                    'Infinite Onslaught',
+                    'newBombgeonEndless',
                     gametype=OnslaughtGame,
+                    displayname='Endless',
                     settings={'preset': 'endless'},
                     preview_texture_name='doomShroomPreview',
                 ),
                 Level(
-                    'Infinite Runaround',
-                    gametype=RunaroundGame,
+                    'newBombgeonCoop',
+                    gametype=CoopGame,
+                    displayname='Test',
                     settings={'preset': 'endless'},
-                    preview_texture_name='towerDPreview',
+                    preview_texture_name='null',
                 ),
-                Level(
-                    'Race',
-                    displayname='${GAME}',
-                    gametype=RaceGame,
-                    settings={'map': 'Big G', 'Laps': 3, 'Bomb Spawning': 0},
-                    preview_texture_name='bigGPreview',
-                ),
-                Level(
-                    'Pro Race',
-                    displayname='Pro ${GAME}',
-                    gametype=RaceGame,
-                    settings={'map': 'Big G', 'Laps': 3, 'Bomb Spawning': 1000},
-                    preview_texture_name='bigGPreview',
-                ),
-                Level(
-                    'Lake Frigid Race',
-                    displayname='${GAME}',
-                    gametype=RaceGame,
-                    settings={
-                        'map': 'Lake Frigid',
-                        'Laps': 6,
-                        'Mine Spawning': 2000,
-                        'Bomb Spawning': 0,
-                    },
-                    preview_texture_name='lakeFrigidPreview',
-                ),
-                Level(
-                    'Football',
-                    displayname='${GAME}',
-                    gametype=FootballCoopGame,
-                    settings={'preset': 'tournament'},
-                    preview_texture_name='footballStadiumPreview',
-                ),
-                Level(
-                    'Pro Football',
-                    displayname='Pro ${GAME}',
-                    gametype=FootballCoopGame,
-                    settings={'preset': 'tournament_pro'},
-                    preview_texture_name='footballStadiumPreview',
-                ),
-                Level(
-                    'Runaround',
-                    displayname='${GAME}',
-                    gametype=RunaroundGame,
-                    settings={'preset': 'tournament'},
-                    preview_texture_name='towerDPreview',
-                ),
-                Level(
-                    'Uber Runaround',
-                    displayname='Uber ${GAME}',
-                    gametype=RunaroundGame,
-                    settings={'preset': 'tournament_uber'},
-                    preview_texture_name='towerDPreview',
-                ),
-                Level(
-                    'The Last Stand',
-                    displayname='${GAME}',
-                    gametype=TheLastStandGame,
-                    settings={'preset': 'tournament'},
-                    preview_texture_name='rampagePreview',
-                ),
-                Level(
-                    'Tournament Infinite Onslaught',
-                    displayname='Infinite Onslaught',
-                    gametype=OnslaughtGame,
-                    settings={'preset': 'endless_tournament'},
-                    preview_texture_name='doomShroomPreview',
-                ),
-                Level(
-                    'Tournament Infinite Runaround',
-                    displayname='Infinite Runaround',
-                    gametype=RunaroundGame,
-                    settings={'preset': 'endless_tournament'},
-                    preview_texture_name='towerDPreview',
-                ),
-                Level(
-                    'Target Practice',
-                    displayname='Pro ${GAME}',
-                    gametype=TargetPracticeGame,
-                    settings={},
-                    preview_texture_name='doomShroomPreview',
-                ),
-                Level(
-                    'Target Practice B',
-                    displayname='${GAME}',
-                    gametype=TargetPracticeGame,
-                    settings={
-                        'Target Count': 2,
-                        'Enable Impact Bombs': False,
-                        'Enable Triple Bombs': False,
-                    },
-                    preview_texture_name='doomShroomPreview',
-                ),
-                Level(
-                    'Meteor Shower',
-                    displayname='${GAME}',
-                    gametype=MeteorShowerGame,
-                    settings={},
-                    preview_texture_name='rampagePreview',
-                ),
-                Level(
-                    'Epic Meteor Shower',
-                    displayname='${GAME}',
-                    gametype=MeteorShowerGame,
-                    settings={'Epic Mode': True},
-                    preview_texture_name='rampagePreview',
-                ),
-                Level(
-                    'Easter Egg Hunt',
-                    displayname='${GAME}',
-                    gametype=EasterEggHuntGame,
-                    settings={},
-                    preview_texture_name='towerDPreview',
-                ),
-                Level(
-                    'Pro Easter Egg Hunt',
-                    displayname='Pro ${GAME}',
-                    gametype=EasterEggHuntGame,
-                    settings={'Pro Mode': True},
-                    preview_texture_name='towerDPreview',
-                ),
-                Level(
-                    name='Ninja Fight',  # (unique id not seen by player)
-                    displayname='${GAME}',  # (readable name seen by player)
-                    gametype=NinjaFightGame,
-                    settings={'preset': 'regular'},
-                    preview_texture_name='courtyardPreview',
-                ),
-                Level(
-                    name='Pro Ninja Fight',
-                    displayname='Pro ${GAME}',
-                    gametype=NinjaFightGame,
-                    settings={'preset': 'pro'},
-                    preview_texture_name='courtyardPreview',
-                ),
+                
             ],
         )
     )
