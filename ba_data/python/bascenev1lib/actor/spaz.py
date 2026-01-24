@@ -373,6 +373,11 @@ class Spaz(bs.Actor):
     def tick(self):
         # simple ticks
         self._update_health_text()
+        if self.node:
+            self.node.hurt = (
+                        1.0 - float(self.hitpoints) / self.hitpoints_max
+                    )
+
 
     def _update_health_text(self) -> None:
        
@@ -1464,8 +1469,11 @@ class Spaz(bs.Actor):
             # us if its grown high enough.
             if self.hitpoints <= 0:
                 damage_avg = self.node.damage_smoothed * damage_scale
-                if damage_avg >= 1000:
+                # updated stuf
+                if damage_avg >= 800:
                     self.shatter()
+                if damage_avg >= 1100:
+                    self.shatter(True)
             
             
            
