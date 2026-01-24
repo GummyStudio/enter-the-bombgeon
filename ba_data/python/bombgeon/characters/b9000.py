@@ -397,6 +397,7 @@ class B9000Character(BombgeonCharBase):
                 self.node.position,
                 (0, 0, 0),
                 0.5,
+                source_player=self.source_player
             )
 
     def drain_hp(self, target_spaz: Spaz) -> None:
