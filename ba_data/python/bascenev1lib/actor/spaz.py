@@ -1192,6 +1192,10 @@ class Spaz(bs.Actor):
                 if msg._source_player == self.source_player:
                     pass
                 elif msg._source_player.team == self.team:
+
+                    # Oh, we got healed
+                    if msg.hit_subtype == 'healing_bomb':
+                        self.healing(1.1, False)
                     return None
 
             if self.node.invincible:
