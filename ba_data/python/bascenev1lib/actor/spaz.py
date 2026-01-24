@@ -15,6 +15,8 @@ from bascenev1lib.actor.bomb import Bomb, Blast
 from bascenev1lib.actor.powerupbox import PowerupBoxFactory, PowerupBox
 from bascenev1lib.actor.spazfactory import SpazFactory
 from bascenev1lib.gameutils import SharedObjects
+from bascenev1lib.actor.popuptext import PopupText
+
 
 if TYPE_CHECKING:
     from typing import Any, Sequence, Callable
@@ -377,7 +379,54 @@ class Spaz(bs.Actor):
             self.node.hurt = (
                         1.0 - float(self.hitpoints) / self.hitpoints_max
                     )
+    
+    def healing(self, heal_scale: float = 1.5, instant: bool = True):
+        if not self.exists() or not self.is_alive():
+            return
 
+        total_heal = int(16 * heal_scale / self.impact_scale)
+
+       
+        if instant:
+            # instan
+            self.hitpoints = min(
+                self.hitpoints + total_heal,
+                self.hitpoints_max,
+            )
+
+            PopupText(
+                text=f"+{int(total_heal/10)}",
+                position=self.node.position,
+                color=(0.2, 1.0, 0.2),
+                scale=1.2,
+                random_offset=0.6,
+            ).autoretain()
+
+        
+        else:
+            # gradual heal woo
+            heal_ticks = max(1, total_heal // 5)
+            heal_per_tick = max(1, total_heal // heal_ticks)
+
+            def heal_step():
+                if not self.exists() or not self.is_alive():
+                    return
+
+                self.hitpoints = min(
+                    self.hitpoints + heal_per_tick,
+                    self.hitpoints_max,
+                )
+
+                PopupText(
+                    text="+",
+                    position=self.node.position,
+                    color=(0.2, 1.0, 0.2),
+                    scale=1.0,
+                    random_offset=0.8,
+                ).autoretain()
+
+            for i in range(heal_ticks):
+                bs.timer(0.15 * i, heal_step)
 
     def _update_health_text(self) -> None:
        
@@ -1491,7 +1540,6 @@ class Spaz(bs.Actor):
             damage_str = f'{self._damage_stack}%'
         
             
-            from bascenev1lib.actor.popuptext import PopupText
             # Only show damage if the type was as following:                 
             if msg.hit_type in ['punch', 'explosion', 'impact'] and self.exists():
                 
