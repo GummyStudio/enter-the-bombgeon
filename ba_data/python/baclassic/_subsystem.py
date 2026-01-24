@@ -190,6 +190,7 @@ class ClassicSubsystem(babase.AppSubsystem):
             stdmaps.StepRightUp,
             stdmaps.Courtyard,
             stdmaps.Rampage,
+            stdmaps.TestingMap
         ]:
             bascenev1.register_map(maptype)
 
