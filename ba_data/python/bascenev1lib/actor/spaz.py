@@ -380,53 +380,66 @@ class Spaz(bs.Actor):
                         1.0 - float(self.hitpoints) / self.hitpoints_max
                     )
     
-    def healing(self, heal_scale: float = 1.5, instant: bool = True):
-        if not self.exists() or not self.is_alive():
+    def healing(
+        self,
+        heal_scale: float = 1.5,
+        instant: bool = True,
+        duration: float = 0.8,
+    ):
+        if not self.is_alive():
             return
 
-        total_heal = int(16 * heal_scale / self.impact_scale)
+        total_heal = int(20 * heal_scale)
+        total_heal = min(total_heal, self.hitpoints_max - self.hitpoints)
 
-       
+        if total_heal <= 0:
+            return
+
+      
         if instant:
-            # instan
+            self.hitpoints += total_heal
+
+            PopupText(
+                text=f"+{total_heal}",
+                position=self.node.position,
+                color=(0.2, 1.0, 0.2),
+                scale=1.3,
+                random_offset=0.6,
+            ).autoretain()
+            return
+
+        tick_rate = 0.1
+        ticks = max(1, int(duration / tick_rate))
+        heal_per_tick = max(1, total_heal // ticks)
+
+        healed = 0
+
+        def heal_tick():
+            nonlocal healed
+            if not self.is_alive():
+                return
+
+            remaining = total_heal - healed
+            if remaining <= 0:
+                return
+
+            amt = min(heal_per_tick, remaining)
+            healed += amt
             self.hitpoints = min(
-                self.hitpoints + total_heal,
+                self.hitpoints + amt,
                 self.hitpoints_max,
             )
 
             PopupText(
-                text=f"+{int(total_heal/10)}",
+                text=f"+{amt}",
                 position=self.node.position,
                 color=(0.2, 1.0, 0.2),
-                scale=1.2,
-                random_offset=0.6,
+                scale=0.5,
+                random_offset=0.7,
             ).autoretain()
 
-        
-        else:
-            # gradual heal woo
-            heal_ticks = max(1, total_heal // 5)
-            heal_per_tick = max(1, total_heal // heal_ticks)
-
-            def heal_step():
-                if not self.exists() or not self.is_alive():
-                    return
-
-                self.hitpoints = min(
-                    self.hitpoints + heal_per_tick,
-                    self.hitpoints_max,
-                )
-
-                PopupText(
-                    text="+",
-                    position=self.node.position,
-                    color=(0.2, 1.0, 0.2),
-                    scale=1.0,
-                    random_offset=0.8,
-                ).autoretain()
-
-            for i in range(heal_ticks):
-                bs.timer(0.15 * i, heal_step)
+        for i in range(ticks):
+            bs.timer(i * tick_rate, heal_tick)
 
     def _update_health_text(self) -> None:
        
@@ -1195,7 +1208,7 @@ class Spaz(bs.Actor):
 
                     # Oh, we got healed
                     if msg.hit_subtype == 'healing_bomb':
-                        self.healing(1.1, False)
+                        self.healing(4.5, False, 1.2)
                     return None
 
             if self.node.invincible:
