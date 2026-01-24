@@ -400,7 +400,7 @@ class Spaz(bs.Actor):
             self.hitpoints += total_heal
 
             PopupText(
-                text=f"+{total_heal}",
+                text=f"+{int(total_heal/10/self.impact_scale)}",
                 position=self.node.position,
                 color=(0.2, 1.0, 0.2),
                 scale=1.3,
@@ -431,7 +431,7 @@ class Spaz(bs.Actor):
             )
 
             PopupText(
-                text=f"+{amt}",
+                text=f"+{int(amt/10/self.impact_scale)}",
                 position=self.node.position,
                 color=(0.2, 1.0, 0.2),
                 scale=0.5,
