@@ -397,10 +397,10 @@ class Spaz(bs.Actor):
 
       
         if instant:
-            self.hitpoints += total_heal
+            self.hitpoints += total_heal * self.impact_scale
 
             PopupText(
-                text=f"+{int(total_heal/10/self.impact_scale)}",
+                text=f"+{int(total_heal/10)}",
                 position=self.node.position,
                 color=(0.2, 1.0, 0.2),
                 scale=1.3,
@@ -423,7 +423,7 @@ class Spaz(bs.Actor):
             if remaining <= 0:
                 return
 
-            amt = min(heal_per_tick, remaining)
+            amt = min(heal_per_tick, remaining) * self.impact_scale
             healed += amt
             self.hitpoints = min(
                 self.hitpoints + amt,
@@ -431,10 +431,10 @@ class Spaz(bs.Actor):
             )
 
             PopupText(
-                text=f"+{int(amt/10/self.impact_scale)}",
+                text=f"+",
                 position=self.node.position,
                 color=(0.2, 1.0, 0.2),
-                scale=0.5,
+                scale=0.55,
                 random_offset=0.7,
             ).autoretain()
 
