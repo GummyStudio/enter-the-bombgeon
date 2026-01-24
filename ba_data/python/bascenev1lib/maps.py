@@ -1746,3 +1746,89 @@ class Rampage(bs.Map):
         xpos = (point.x - box_position[0]) / box_scale[0]
         zpos = (point.z - box_position[2]) / box_scale[2]
         return xpos < -0.5 or xpos > 0.5 or zpos < -0.5 or zpos > 0.5
+
+class TestingMap(bs.Map):
+    """MELEEEEEEEEEEEEEEEEE""" 
+    class defs:
+        points = {}
+        boxes = {}
+        boxes['area_of_interest_bounds'] = (0.0, 0.7956858119, 0.0) + (
+            0.0, 0.0, 0.0) + (30.80223883, 0.5961646365, 13.88431707)
+        boxes['map_bounds'] = (0.0, 0.2, -0.2) + (0.0, 0.0, 0.0) + (
+            35.16182389, 12.18696164, 21.52869693)
+        points['ffa_spawn1'] = (0.0, 1.4, 0.0)
+
+        
+
+        
+
+    name = 'Test Map'
+
+    @override
+    @classmethod
+    def get_play_types(cls) -> list[str]:
+        """Return valid play types for this map."""
+        return ['Test']
+
+    @override
+    @classmethod
+    def get_preview_texture_name(cls) -> str:
+        return 'null'
+
+    @override
+    @classmethod
+    def on_preload(cls) -> Any:
+        data: dict[str, Any] = {
+        }
+        return data
+
+    def __init__(self) -> None:
+        super().__init__()
+        shared = SharedObjects.get()
+        self.locs = []
+        self.regions = []
+        
+        self.collision = bs.Material()
+        self.collision.add_actions(
+            actions=(('modify_part_collision', 'collide', True)))
+
+        set = [
+              dict(
+                  position=(0.0, 0.0, 0.0), 
+                  color=(1.0, 1, 1), 
+                  size=(20.0, 1.0, 15.0)),
+              
+              ]
+
+        for i, map in enumerate(set):
+            self.locs.append(
+                bs.newnode('locator',
+                    attrs={'shape': 'box',
+                           'position': set[i]['position'],
+                           'color': set[i]['color'],
+                           'opacity': 1.0,
+                           'draw_beauty': True,
+                           'size': tuple(set[i]['size']),
+                           'additive': False}))
+                           
+            self.regions.append(
+                bs.newnode('region',
+                    attrs={'scale': tuple(set[i]['size']),
+                           'type': 'box',
+                           'materials': [self.collision,
+                                         shared.footing_material]}))
+            self.locs[-1].connectattr('position', self.regions[-1], 'position')
+
+        self.background = bs.newnode(
+            'terrain',
+            attrs={
+                'mesh': bs.getmesh('tipTopBG'),
+                'lighting': False,
+                'background': True,
+                'color_texture': bs.gettexture('tipTopBGColor')})
+
+        gnode = bs.getactivity().globalsnode
+        gnode.tint = (.6, 0.6, .6)
+        gnode.ambient_color = (1, 1, 1)
+        gnode.vignette_outer = (1, 1, 1)
+        gnode.vignette_inner = (0.95, 0.95, 0.93)
